@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { EstadoBadge } from "@/components/EstadoBadge";
 import { CambiarEstadoForm } from "@/components/CambiarEstadoForm";
+import { EliminarOrdenButton } from "@/components/EliminarOrdenButton";
 import { InfoRow } from "@/components/InfoRow";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -155,6 +156,8 @@ export default async function OrdenDetallePage({
             </ol>
           </section>
         ) : null}
+
+        <EliminarOrdenButton ordenId={orden.id} />
       </main>
     </div>
   );

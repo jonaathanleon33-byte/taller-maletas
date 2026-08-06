@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Estado } from "@/types/database";
 
@@ -30,4 +31,38 @@ export async function cambiarEstado(
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
   return null;
+}
+
+export type EliminarOrdenState = { error: string } | null;
+
+/* eslint-disable @typescript-eslint/no-unused-vars -- required by useActionState's (prevState, formData) signature */
+export async function eliminarOrden(
+  ordenId: string,
+  _prevState: EliminarOrdenState,
+  _formData: FormData,
+): Promise<EliminarOrdenState> {
+  /* eslint-enable @typescript-eslint/no-unused-vars */
+  const supabase = await createClient();
+
+  const { data: fotos } = await supabase
+    .from("fotos")
+    .select("url")
+    .eq("orden_id", ordenId);
+
+  const paths = (fotos ?? [])
+    .map((foto) => foto.url.split("/fotos-ordenes/")[1])
+    .filter((path): path is string => Boolean(path));
+
+  if (paths.length > 0) {
+    await supabase.storage.from("fotos-ordenes").remove(paths);
+  }
+
+  const { error } = await supabase.from("ordenes").delete().eq("id", ordenId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/");
+  redirect("/");
 }

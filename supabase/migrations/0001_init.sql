@@ -76,14 +76,33 @@ create trigger ordenes_set_updated_at
 
 -- Trigger: registrar historial de estados automáticamente ----------
 -- Al crear una orden, registra el estado inicial (estado_anterior = null).
--- Al actualizar, solo registra si el estado realmente cambió.
-create or replace function registrar_historial_estado()
+-- Como la fila de `ordenes` recién existe DESPUÉS del insert, este caso
+-- se maneja en un trigger AFTER INSERT (si fuera BEFORE, el insert en
+-- historial_estados violaría la foreign key porque la orden todavía no
+-- está en la tabla).
+create or replace function registrar_historial_estado_insert()
 returns trigger as $$
 begin
-  if tg_op = 'INSERT' then
-    insert into historial_estados (orden_id, estado_anterior, estado_nuevo)
-    values (new.id, null, new.estado);
-  elsif tg_op = 'UPDATE' and new.estado is distinct from old.estado then
+  insert into historial_estados (orden_id, estado_anterior, estado_nuevo)
+  values (new.id, null, new.estado);
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger ordenes_registrar_historial_insert
+  after insert on ordenes
+  for each row
+  execute function registrar_historial_estado_insert();
+
+-- Al actualizar, solo registra si el estado realmente cambió. Este caso
+-- va en un trigger BEFORE UPDATE porque necesita modificar NEW para
+-- completar fecha_entregada automáticamente; la fila ya existe en la
+-- tabla (es un update, no un insert), así que la foreign key no tiene
+-- problema.
+create or replace function registrar_historial_estado_update()
+returns trigger as $$
+begin
+  if new.estado is distinct from old.estado then
     insert into historial_estados (orden_id, estado_anterior, estado_nuevo)
     values (new.id, old.estado, new.estado);
 
@@ -95,10 +114,10 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
-create trigger ordenes_registrar_historial
-  before insert or update on ordenes
+create trigger ordenes_registrar_historial_update
+  before update on ordenes
   for each row
-  execute function registrar_historial_estado();
+  execute function registrar_historial_estado_update();
 
 -- ============================================================
 -- Storage: bucket para fotos de órdenes
