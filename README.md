@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Taller de maletas — gestión de órdenes
 
-## Getting Started
+MVP para gestionar órdenes de reparación en el taller, complementario al
+POS existente (se vinculan por `numero_recibo`). Next.js (App Router) +
+Supabase (base de datos, auth, storage) + Tailwind CSS.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Instalar dependencias:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   npm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Crear un proyecto en [supabase.com](https://supabase.com) (o usar uno
+   existente).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Copiar `.env.local.example` a `.env.local` y completar con los datos
+   de tu proyecto (Project Settings → API):
 
-## Learn More
+   ```bash
+   cp .env.local.example .env.local
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Ejecutar la migración inicial en el **SQL Editor** de Supabase: copiar
+   y correr el contenido de
+   [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
+   Esto crea las tablas (`ordenes`, `fotos`, `historial_estados`), los
+   triggers (actualización de `updated_at` e historial automático de
+   cambios de estado), el bucket de Storage `fotos-ordenes`, y las
+   políticas de RLS.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   > **Nota sobre seguridad:** el MVP no tiene login propio (se usa
+   > desde el mostrador del taller), así que las políticas de RLS
+   > permiten acceso completo al rol `anon`. Antes de exponer la app
+   > fuera de la red del taller, agregar autenticación y restringir
+   > las políticas a `authenticated`.
 
-## Deploy on Vercel
+5. Levantar el servidor de desarrollo:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Abrir [http://localhost:3000](http://localhost:3000).
+
+## Estructura
+
+- `src/app` — rutas (App Router).
+- `src/lib/supabase` — clientes de Supabase (browser y server).
+- `src/lib/estado.ts` — labels, colores por estado y mensajes de WhatsApp.
+- `src/types/database.ts` — tipos TypeScript del esquema.
+- `supabase/migrations` — SQL de la base de datos.
