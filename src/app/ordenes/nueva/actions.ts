@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { exportarOrdenASheets } from "@/lib/google-sheets";
 import type { Estado, Tamano, TipoMaleta } from "@/types/database";
 
 export type CrearOrdenState = { error: string } | null;
@@ -73,7 +74,7 @@ export async function crearOrden(
       fecha_recibido,
       fecha_prometida,
     })
-    .select("id")
+    .select("*")
     .single();
 
   if (insertError || !orden) {
@@ -82,6 +83,8 @@ export async function crearOrden(
     }
     return { error: insertError?.message ?? "No se pudo crear la orden." };
   }
+
+  await exportarOrdenASheets(orden);
 
   for (const [index, file] of fotos.entries()) {
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
