@@ -22,7 +22,17 @@ export async function exportarOrdenASheets(orden: Orden) {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   const auth = getAuth();
 
-  if (!sheetId || !auth) return;
+  if (!sheetId || !auth) {
+    console.warn(
+      "Sheets: exportación salteada, faltan variables de entorno.",
+      {
+        tieneSheetId: Boolean(sheetId),
+        tieneEmail: Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL),
+        tieneKey: Boolean(process.env.GOOGLE_PRIVATE_KEY),
+      },
+    );
+    return;
+  }
 
   try {
     const sheets = google.sheets({ version: "v4", auth });
