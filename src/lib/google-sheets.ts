@@ -4,6 +4,7 @@ import { formatFecha, formatFechaHora } from "@/lib/format";
 import type { Orden } from "@/types/database";
 
 const SHEET_NAME = "Ordenes";
+const TABS_NO_TECNICOS = new Set(["Ordenes", "Listado de Precios"]);
 
 function getAuth() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -63,5 +64,26 @@ export async function exportarOrdenASheets(orden: Orden) {
     });
   } catch (err) {
     console.error("No se pudo exportar la orden a Google Sheets:", err);
+  }
+}
+
+export async function obtenerTecnicos(): Promise<string[]> {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const auth = getAuth();
+
+  if (!sheetId || !auth) return [];
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const res = await sheets.spreadsheets.get({ spreadsheetId: sheetId });
+    return (res.data.sheets ?? [])
+      .map((s) => s.properties?.title)
+      .filter(
+        (title): title is string =>
+          typeof title === "string" && !TABS_NO_TECNICOS.has(title),
+      );
+  } catch (err) {
+    console.error("No se pudo obtener la lista de técnicos:", err);
+    return [];
   }
 }

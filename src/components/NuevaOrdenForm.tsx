@@ -5,7 +5,8 @@ import {
   crearOrden,
   type CrearOrdenState,
 } from "@/app/ordenes/nueva/actions";
-import { ESTADOS, ESTADO_LABELS, TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
+import { ESTADOS, TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
+import { EstadoSelect } from "@/components/EstadoSelect";
 
 const initialState: CrearOrdenState = null;
 
@@ -19,7 +20,7 @@ const inputClass =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-slate-500 focus:outline-none";
 const labelClass = "mb-1 block text-sm font-medium text-slate-700";
 
-export function NuevaOrdenForm() {
+export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
   const [state, formAction, pending] = useActionState(
     crearOrden,
     initialState,
@@ -220,26 +221,28 @@ export function NuevaOrdenForm() {
           <input
             id="tecnico_asignado"
             name="tecnico_asignado"
+            list="tecnicos-list"
             className={inputClass}
+            placeholder="Elegir o escribir un nombre"
           />
+          {tecnicos.length > 0 ? (
+            <datalist id="tecnicos-list">
+              {tecnicos.map((tecnico) => (
+                <option key={tecnico} value={tecnico} />
+              ))}
+            </datalist>
+          ) : null}
         </div>
 
         <div>
           <label className={labelClass} htmlFor="estado">
             Estado inicial
           </label>
-          <select
-            id="estado"
+          <EstadoSelect
             name="estado"
             defaultValue="recibida"
-            className={inputClass}
-          >
-            {ESTADOS.filter((e) => e !== "entregada").map((estado) => (
-              <option key={estado} value={estado}>
-                {ESTADO_LABELS[estado]}
-              </option>
-            ))}
-          </select>
+            options={ESTADOS.filter((e) => e !== "entregada")}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

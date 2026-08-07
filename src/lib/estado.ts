@@ -72,25 +72,25 @@ const COLOR_CLASSES: Record<EstadoColor, { bar: string; badge: string; dot: stri
   },
 };
 
+const ESTADO_COLOR: Record<Estado, EstadoColor> = {
+  recibida: "gris",
+  en_reparacion: "amarillo",
+  esperando_repuesto: "azul",
+  lista: "verde",
+  entregada: "gris",
+};
+
 export function getEstadoColor(orden: Pick<Orden, "estado" | "fecha_recibido">): EstadoColor {
   if (estaAtrasada(orden)) return "rojo";
-  switch (orden.estado) {
-    case "lista":
-      return "verde";
-    case "en_reparacion":
-      return "amarillo";
-    case "esperando_repuesto":
-      return "azul";
-    case "entregada":
-      return "gris";
-    case "recibida":
-    default:
-      return "gris";
-  }
+  return ESTADO_COLOR[orden.estado];
 }
 
 export function getEstadoClasses(orden: Pick<Orden, "estado" | "fecha_recibido">) {
   return COLOR_CLASSES[getEstadoColor(orden)];
+}
+
+export function estadoDotClass(estado: Estado) {
+  return COLOR_CLASSES[ESTADO_COLOR[estado]].dot;
 }
 
 export function mensajeWhatsapp(orden: Pick<Orden, "cliente_nombre" | "numero_recibo" | "estado" | "marca" | "color">) {
