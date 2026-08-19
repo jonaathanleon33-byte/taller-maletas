@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { EstadoBadge } from "@/components/EstadoBadge";
@@ -13,6 +14,7 @@ import {
   mensajeWhatsapp,
 } from "@/lib/estado";
 import { formatFecha, formatFechaHora } from "@/lib/format";
+import { calcularTotales, formatMoney } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +26,7 @@ export default async function OrdenDetallePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: orden }, { data: fotos }, { data: historial }] =
+  const [{ data: orden }, { data: fotos }, { data: historial }, { data: comprobante }] =
     await Promise.all([
       supabase.from("ordenes").select("*").eq("id", id).single(),
       supabase
@@ -37,11 +39,27 @@ export default async function OrdenDetallePage({
         .select("*")
         .eq("orden_id", id)
         .order("created_at", { ascending: false }),
+      supabase.from("comprobantes").select("*").eq("orden_id", id).maybeSingle(),
     ]);
 
   if (!orden) {
     notFound();
   }
+
+  const { data: comprobanteItems } = comprobante
+    ? await supabase
+        .from("comprobante_items")
+        .select("*")
+        .eq("comprobante_id", comprobante.id)
+    : { data: null };
+
+  const comprobanteTotal = comprobante
+    ? calcularTotales(
+        comprobanteItems ?? [],
+        comprobante.descuento_global,
+        comprobante.impuestos,
+      ).total
+    : null;
 
   const mensaje = mensajeWhatsapp(orden);
   const whatsappHref = linkWhatsapp(orden.cliente_telefono, mensaje);
@@ -112,6 +130,33 @@ export default async function OrdenDetallePage({
             </div>
           </section>
         ) : null}
+
+        <Link
+          href={`/ordenes/${orden.id}/comprobante`}
+          className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 active:bg-slate-50"
+        >
+          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+            Comprobante
+          </span>
+          <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
+            {comprobante ? (
+              <>
+                {formatMoney(comprobanteTotal ?? 0)}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    comprobante.pagado
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {comprobante.pagado ? "Pagado" : "Pendiente"}
+                </span>
+              </>
+            ) : (
+              "Crear →"
+            )}
+          </span>
+        </Link>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="mb-3 text-sm font-semibold text-slate-500 uppercase tracking-wide">

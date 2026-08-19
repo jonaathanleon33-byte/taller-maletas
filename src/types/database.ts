@@ -47,6 +47,39 @@ export type OrdenInsert = Omit<
   "id" | "created_at" | "updated_at" | "estado" | "fecha_entregada"
 > & { estado?: Estado; fecha_entregada?: string | null };
 
+export type MetodoPago = "efectivo" | "tarjeta" | "transferencia" | "otro";
+
+export type Servicio = {
+  id: string;
+  nombre: string;
+  precio: number;
+  activo: boolean;
+  created_at: string;
+};
+
+export type Comprobante = {
+  id: string;
+  orden_id: string;
+  metodo_pago: MetodoPago;
+  atendido_por: string | null;
+  descuento_global: number;
+  impuestos: number;
+  pagado: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ComprobanteItem = {
+  id: string;
+  comprobante_id: string;
+  servicio_id: string | null;
+  descripcion: string;
+  precio_unitario: number;
+  cantidad: number;
+  descuento_pct: number;
+  created_at: string;
+};
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -83,6 +116,66 @@ export type Database = {
             columns: ["orden_id"];
             isOneToOne: false;
             referencedRelation: "ordenes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      servicios: {
+        Row: Servicio;
+        Insert: Omit<Servicio, "id" | "created_at" | "activo"> & {
+          activo?: boolean;
+        };
+        Update: Partial<Omit<Servicio, "id" | "created_at">>;
+        Relationships: [];
+      };
+      comprobantes: {
+        Row: Comprobante;
+        Insert: Omit<
+          Comprobante,
+          | "id"
+          | "created_at"
+          | "updated_at"
+          | "metodo_pago"
+          | "atendido_por"
+          | "descuento_global"
+          | "impuestos"
+          | "pagado"
+        > & {
+          metodo_pago?: MetodoPago;
+          atendido_por?: string | null;
+          descuento_global?: number;
+          impuestos?: number;
+          pagado?: boolean;
+        };
+        Update: Partial<
+          Omit<Comprobante, "id" | "orden_id" | "created_at" | "updated_at">
+        >;
+        Relationships: [
+          {
+            foreignKeyName: "comprobantes_orden_id_fkey";
+            columns: ["orden_id"];
+            isOneToOne: true;
+            referencedRelation: "ordenes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      comprobante_items: {
+        Row: ComprobanteItem;
+        Insert: Omit<
+          ComprobanteItem,
+          "id" | "created_at" | "descuento_pct" | "cantidad"
+        > & {
+          descuento_pct?: number;
+          cantidad?: number;
+        };
+        Update: Partial<Omit<ComprobanteItem, "id" | "created_at">>;
+        Relationships: [
+          {
+            foreignKeyName: "comprobante_items_comprobante_id_fkey";
+            columns: ["comprobante_id"];
+            isOneToOne: false;
+            referencedRelation: "comprobantes";
             referencedColumns: ["id"];
           },
         ];

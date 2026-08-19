@@ -56,20 +56,28 @@ export default async function Home({
       <AppHeader
         title="Taller de Maletas"
         action={
-          <Link
-            href="/ordenes/nueva"
-            className="flex h-9 items-center gap-1 rounded-full bg-slate-900 px-3 text-sm font-medium text-white active:bg-slate-700"
-          >
-            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-              <path
-                d="M12 5v14M5 12h14"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            Nueva
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/servicios"
+              className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
+            >
+              Precios
+            </Link>
+            <Link
+              href="/ordenes/nueva"
+              className="flex h-9 items-center gap-1 rounded-full bg-slate-900 px-3 text-sm font-medium text-white active:bg-slate-700"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                <path
+                  d="M12 5v14M5 12h14"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Nueva
+            </Link>
+          </div>
         }
       />
 
