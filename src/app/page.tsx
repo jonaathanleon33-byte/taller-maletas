@@ -56,12 +56,20 @@ export default async function Home({
       <AppHeader
         title="Taller de Maletas"
         action={
-          <Link
-            href="/servicios"
-            className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
-          >
-            Precios
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/ajustes/recibo"
+              className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
+            >
+              Recibo
+            </Link>
+            <Link
+              href="/servicios"
+              className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
+            >
+              Precios
+            </Link>
+          </div>
         }
       />
 

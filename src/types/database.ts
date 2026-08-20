@@ -59,6 +59,7 @@ export type Servicio = {
 
 export type Comprobante = {
   id: string;
+  numero_venta: number;
   orden_id: string | null;
   metodo_pago: MetodoPago;
   atendido_por: string | null;
@@ -80,6 +81,18 @@ export type ComprobanteItem = {
   cantidad: number;
   descuento_pct: number;
   created_at: string;
+};
+
+export type NegocioConfig = {
+  id: number;
+  nombre: string;
+  nit: string;
+  direccion: string;
+  telefono: string;
+  web: string;
+  pie_texto: string;
+  logo_url: string | null;
+  updated_at: string;
 };
 
 export type Database = {
@@ -135,6 +148,7 @@ export type Database = {
         Insert: Omit<
           Comprobante,
           | "id"
+          | "numero_venta"
           | "created_at"
           | "updated_at"
           | "orden_id"
@@ -156,7 +170,10 @@ export type Database = {
           cliente_telefono?: string | null;
         };
         Update: Partial<
-          Omit<Comprobante, "id" | "orden_id" | "created_at" | "updated_at">
+          Omit<
+            Comprobante,
+            "id" | "numero_venta" | "orden_id" | "created_at" | "updated_at"
+          >
         >;
         Relationships: [
           {
@@ -187,6 +204,14 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      negocio_config: {
+        Row: NegocioConfig;
+        Insert: Partial<Omit<NegocioConfig, "id" | "updated_at">> & {
+          id: number;
+        };
+        Update: Partial<Omit<NegocioConfig, "id" | "updated_at">>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

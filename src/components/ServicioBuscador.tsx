@@ -44,11 +44,11 @@ export function ServicioBuscador({
         }}
         onFocus={() => setOpen(true)}
         placeholder="Buscar servicio o producto…"
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-slate-500 focus:outline-none"
+        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-900 focus:border-slate-500 focus:outline-none"
       />
 
       {open && matches.length > 0 ? (
-        <ul className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+        <ul className="absolute z-10 mt-1 max-h-80 w-full divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
           {matches.map((servicio) => (
             <li key={servicio.id}>
               <button
@@ -58,10 +58,10 @@ export function ServicioBuscador({
                   setQuery("");
                   setOpen(false);
                 }}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm text-slate-900 active:bg-slate-100"
+                className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left text-base leading-snug text-slate-900 active:bg-slate-100"
               >
-                <span className="truncate">{servicio.nombre}</span>
-                <span className="shrink-0 text-slate-500">
+                <span>{servicio.nombre}</span>
+                <span className="shrink-0 text-sm text-slate-500">
                   {formatMoney(servicio.precio)}
                 </span>
               </button>

@@ -1,8 +1,7 @@
 import { LogoTaller } from "@/components/LogoTaller";
-import { NEGOCIO } from "@/lib/negocio";
 import { calcularSubtotalItem, calcularTotales, formatMoney } from "@/lib/money";
-import { formatFechaHora } from "@/lib/format";
-import type { Comprobante, ComprobanteItem } from "@/types/database";
+import { formatFechaHoraRecibo } from "@/lib/format";
+import type { Comprobante, ComprobanteItem, NegocioConfig } from "@/types/database";
 
 const METODO_PAGO_LABELS: Record<Comprobante["metodo_pago"], string> = {
   efectivo: "Efectivo",
@@ -12,19 +11,23 @@ const METODO_PAGO_LABELS: Record<Comprobante["metodo_pago"], string> = {
 };
 
 export function ReciboImprimible({
+  negocio,
   numeroRecibo,
   comprobante,
   items,
   clienteNombre,
   clienteTelefono,
   maletaInfo,
+  fechaEntrega,
 }: {
+  negocio: NegocioConfig;
   numeroRecibo: string;
   comprobante: Comprobante;
   items: ComprobanteItem[];
   clienteNombre: string;
   clienteTelefono: string;
   maletaInfo?: string;
+  fechaEntrega?: string;
 }) {
   const { subtotal, total } = calcularTotales(
     items,
@@ -32,18 +35,34 @@ export function ReciboImprimible({
     comprobante.impuestos,
   );
   const cantidadProductos = items.reduce((acc, item) => acc + item.cantidad, 0);
+  const pieLineas = negocio.pie_texto.split("\n").filter(Boolean);
 
   return (
     <div className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[54mm] print:text-[9px] print:leading-snug">
       <div className="flex flex-col items-center text-center">
-        <LogoTaller className="h-14 w-14 print:h-10 print:w-10" />
+        {negocio.logo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={negocio.logo_url}
+            alt="Logo"
+            crossOrigin="anonymous"
+            className="h-14 w-14 object-contain print:h-10 print:w-10"
+          />
+        ) : (
+          <LogoTaller className="h-14 w-14 print:h-10 print:w-10" />
+        )}
         <p className="mt-1 text-sm font-bold uppercase tracking-wide">
-          {NEGOCIO.nombre}
+          {negocio.nombre}
         </p>
-        <p>{NEGOCIO.nit}</p>
-        <p>{NEGOCIO.direccion}</p>
-        <p>{NEGOCIO.telefono}</p>
-        <p>{NEGOCIO.web}</p>
+        <p>{negocio.nit}</p>
+        <p>{negocio.direccion}</p>
+        <p>{negocio.telefono}</p>
+        <p>{negocio.web}</p>
+        {fechaEntrega ? (
+          <p className="mt-1">
+            Entrega {fechaEntrega} ( &nbsp; )
+          </p>
+        ) : null}
       </div>
 
       <hr className="my-2 border-dashed border-black print:my-1" />
@@ -58,7 +77,7 @@ export function ReciboImprimible({
       </div>
       <div className="flex justify-between">
         <span>Fecha:</span>
-        <span>{formatFechaHora(comprobante.created_at)}</span>
+        <span>{formatFechaHoraRecibo(comprobante.created_at)}</span>
       </div>
       <div className="flex justify-between">
         <span>Método Pago:</span>
@@ -70,18 +89,15 @@ export function ReciboImprimible({
       </div>
       <div className="flex justify-between gap-2">
         <span className="shrink-0">Cliente:</span>
-        <span className="text-right">{clienteNombre}</span>
+        <span className="text-right">
+          {clienteNombre}
+          {maletaInfo ? ` ${maletaInfo}` : ""}
+        </span>
       </div>
       <div className="flex justify-between gap-2">
         <span className="shrink-0">Teléfono:</span>
         <span className="text-right">{clienteTelefono}</span>
       </div>
-      {maletaInfo ? (
-        <div className="flex justify-between gap-2">
-          <span className="shrink-0">Maleta:</span>
-          <span className="text-right">{maletaInfo}</span>
-        </div>
-      ) : null}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 
@@ -122,14 +138,6 @@ export function ReciboImprimible({
         <span>Subtotal:</span>
         <span>{formatMoney(subtotal)}</span>
       </div>
-      <div className="flex justify-between">
-        <span>Dto. Global:</span>
-        <span>{formatMoney(comprobante.descuento_global)}</span>
-      </div>
-      <div className="flex justify-between">
-        <span>Impuestos:</span>
-        <span>{formatMoney(comprobante.impuestos)}</span>
-      </div>
       <div className="flex justify-between font-bold">
         <span>Total:</span>
         <span>{formatMoney(total)}</span>
@@ -147,12 +155,12 @@ export function ReciboImprimible({
       </div>
 
       <p className="mt-4 text-center text-xs">
-        Gracias por confiar en nosotros
-        <br />
-        Retiro máx. 30 días posfecha de entrega. Luego, abandono y no nos
-        hacemos responsables.
-        <br />
-        Para la entrega presente este recibo. Gracias.
+        {pieLineas.map((linea, i) => (
+          <span key={i}>
+            {linea}
+            {i < pieLineas.length - 1 ? <br /> : null}
+          </span>
+        ))}
       </p>
     </div>
   );

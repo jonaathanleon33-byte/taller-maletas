@@ -64,6 +64,9 @@ export default async function VentaPage({
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4 pb-10">
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="divide-y divide-slate-100">
+            <InfoRow label="Nº Venta">
+              {`V-${String(comprobante.numero_venta).padStart(6, "0")}`}
+            </InfoRow>
             <InfoRow label="Cliente">{comprobante.cliente_nombre}</InfoRow>
             <InfoRow label="Teléfono">{comprobante.cliente_telefono}</InfoRow>
           </div>
