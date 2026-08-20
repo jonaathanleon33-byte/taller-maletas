@@ -59,12 +59,14 @@ export type Servicio = {
 
 export type Comprobante = {
   id: string;
-  orden_id: string;
+  orden_id: string | null;
   metodo_pago: MetodoPago;
   atendido_por: string | null;
   descuento_global: number;
   impuestos: number;
   pagado: boolean;
+  cliente_nombre: string | null;
+  cliente_telefono: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -135,17 +137,23 @@ export type Database = {
           | "id"
           | "created_at"
           | "updated_at"
+          | "orden_id"
           | "metodo_pago"
           | "atendido_por"
           | "descuento_global"
           | "impuestos"
           | "pagado"
+          | "cliente_nombre"
+          | "cliente_telefono"
         > & {
+          orden_id?: string | null;
           metodo_pago?: MetodoPago;
           atendido_por?: string | null;
           descuento_global?: number;
           impuestos?: number;
           pagado?: boolean;
+          cliente_nombre?: string | null;
+          cliente_telefono?: string | null;
         };
         Update: Partial<
           Omit<Comprobante, "id" | "orden_id" | "created_at" | "updated_at">

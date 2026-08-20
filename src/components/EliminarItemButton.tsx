@@ -1,13 +1,13 @@
 "use client";
 
 import { useTransition } from "react";
-import { eliminarItem } from "@/app/ordenes/[id]/comprobante/actions";
+import { eliminarItem } from "@/lib/comprobante-actions";
 
 export function EliminarItemButton({
-  ordenId,
+  path,
   itemId,
 }: {
-  ordenId: string;
+  path: string;
   itemId: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -16,7 +16,7 @@ export function EliminarItemButton({
     <button
       type="button"
       disabled={pending}
-      onClick={() => startTransition(() => eliminarItem(ordenId, itemId))}
+      onClick={() => startTransition(() => eliminarItem(path, itemId))}
       aria-label="Eliminar ítem"
       className="shrink-0 text-slate-400 active:text-red-600 disabled:opacity-60"
     >

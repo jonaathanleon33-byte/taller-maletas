@@ -4,7 +4,8 @@ import { useActionState, useRef, useState } from "react";
 import {
   agregarItem,
   type AgregarItemState,
-} from "@/app/ordenes/[id]/comprobante/actions";
+} from "@/lib/comprobante-actions";
+import { ServicioBuscador } from "@/components/ServicioBuscador";
 import type { Servicio } from "@/types/database";
 
 const initialState: AgregarItemState = null;
@@ -14,27 +15,25 @@ const inputClass =
 const labelClass = "mb-1 block text-sm font-medium text-slate-700";
 
 export function AgregarItemForm({
-  ordenId,
+  path,
   comprobanteId,
   servicios,
 }: {
-  ordenId: string;
+  path: string;
   comprobanteId: string;
   servicios: Servicio[];
 }) {
-  const action = agregarItem.bind(null, ordenId, comprobanteId);
+  const action = agregarItem.bind(null, path, comprobanteId);
   const [state, formAction, pending] = useActionState(action, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const [servicioId, setServicioId] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [precio, setPrecio] = useState("");
 
-  function handleServicioChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const servicioId = e.target.value;
-    const servicio = servicios.find((s) => s.id === servicioId);
-    if (servicio) {
-      setDescripcion(servicio.nombre);
-      setPrecio(String(servicio.precio));
-    }
+  function handleSelect(servicio: Servicio) {
+    setServicioId(servicio.id);
+    setDescripcion(servicio.nombre);
+    setPrecio(String(servicio.precio));
   }
 
   return (
@@ -43,6 +42,7 @@ export function AgregarItemForm({
       action={async (formData) => {
         await formAction(formData);
         formRef.current?.reset();
+        setServicioId("");
         setDescripcion("");
         setPrecio("");
       }}
@@ -52,25 +52,12 @@ export function AgregarItemForm({
         Agregar ítem
       </h2>
 
+      <input type="hidden" name="servicio_id" value={servicioId} />
+
       {servicios.length > 0 ? (
         <div>
-          <label className={labelClass} htmlFor="servicio_id">
-            Del catálogo
-          </label>
-          <select
-            id="servicio_id"
-            name="servicio_id"
-            defaultValue=""
-            onChange={handleServicioChange}
-            className={inputClass}
-          >
-            <option value="">Manual…</option>
-            {servicios.map((servicio) => (
-              <option key={servicio.id} value={servicio.id}>
-                {servicio.nombre}
-              </option>
-            ))}
-          </select>
+          <label className={labelClass}>Buscar en el catálogo</label>
+          <ServicioBuscador servicios={servicios} onSelect={handleSelect} />
         </div>
       ) : null}
 
@@ -83,8 +70,12 @@ export function AgregarItemForm({
           name="descripcion"
           required
           value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
+          onChange={(e) => {
+            setDescripcion(e.target.value);
+            setServicioId("");
+          }}
           className={inputClass}
+          placeholder="O escribí una descripción manual"
         />
       </div>
 

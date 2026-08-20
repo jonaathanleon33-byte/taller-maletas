@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import {
   actualizarComprobante,
   type ActualizarComprobanteState,
-} from "@/app/ordenes/[id]/comprobante/actions";
+} from "@/lib/comprobante-actions";
 import type { Comprobante } from "@/types/database";
 
 const initialState: ActualizarComprobanteState = null;
@@ -21,15 +21,15 @@ const METODO_PAGO_LABELS: Record<Comprobante["metodo_pago"], string> = {
 };
 
 export function ComprobanteConfigForm({
-  ordenId,
+  path,
   comprobante,
   tecnicos,
 }: {
-  ordenId: string;
+  path: string;
   comprobante: Comprobante;
   tecnicos: string[];
 }) {
-  const action = actualizarComprobante.bind(null, ordenId, comprobante.id);
+  const action = actualizarComprobante.bind(null, path, comprobante.id);
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (

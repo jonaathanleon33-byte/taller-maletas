@@ -56,32 +56,47 @@ export default async function Home({
       <AppHeader
         title="Taller de Maletas"
         action={
-          <div className="flex items-center gap-2">
-            <Link
-              href="/servicios"
-              className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
-            >
-              Precios
-            </Link>
-            <Link
-              href="/ordenes/nueva"
-              className="flex h-9 items-center gap-1 rounded-full bg-slate-900 px-3 text-sm font-medium text-white active:bg-slate-700"
-            >
-              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-                <path
-                  d="M12 5v14M5 12h14"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Nueva
-            </Link>
-          </div>
+          <Link
+            href="/servicios"
+            className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
+          >
+            Precios
+          </Link>
         }
       />
 
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <Link
+            href="/ordenes/nueva"
+            className="flex h-11 items-center justify-center gap-1 rounded-lg bg-slate-900 text-sm font-medium text-white active:bg-slate-700"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+            Orden nueva
+          </Link>
+          <Link
+            href="/ventas/nueva"
+            className="flex h-11 items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 active:bg-slate-100"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+            Venta directa
+          </Link>
+        </div>
+
         <div className="mb-4">
           <Suspense fallback={null}>
             <SearchBar />
