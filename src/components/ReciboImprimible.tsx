@@ -34,9 +34,9 @@ export function ReciboImprimible({
   const cantidadProductos = items.reduce((acc, item) => acc + item.cantidad, 0);
 
   return (
-    <div className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black">
+    <div className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[54mm] print:text-[9px] print:leading-snug">
       <div className="flex flex-col items-center text-center">
-        <LogoTaller className="h-14 w-14" />
+        <LogoTaller className="h-14 w-14 print:h-10 print:w-10" />
         <p className="mt-1 text-sm font-bold uppercase tracking-wide">
           {NEGOCIO.nombre}
         </p>
@@ -46,11 +46,11 @@ export function ReciboImprimible({
         <p>{NEGOCIO.web}</p>
       </div>
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <p className="text-center font-bold">RECIBO</p>
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <div className="flex justify-between">
         <span>Recibo:</span>
@@ -83,11 +83,11 @@ export function ReciboImprimible({
         </div>
       ) : null}
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <p className="text-center font-bold">PRODUCTOS</p>
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       {items.length > 0 ? (
         <div className="flex flex-col gap-2">
@@ -108,11 +108,11 @@ export function ReciboImprimible({
         <p className="text-center text-xs">Sin ítems</p>
       )}
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <p className="text-center font-bold">RESUMEN TOTALES</p>
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <div className="flex justify-between">
         <span>Cantidad Productos:</span>
@@ -135,11 +135,11 @@ export function ReciboImprimible({
         <span>{formatMoney(total)}</span>
       </div>
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <p className="text-center font-bold">ESTADO DE PAGO</p>
 
-      <hr className="my-2 border-dashed border-black" />
+      <hr className="my-2 border-dashed border-black print:my-1" />
 
       <div className="flex justify-between font-bold">
         <span>{comprobante.pagado ? "PAGADO" : "PENDIENTE"}</span>

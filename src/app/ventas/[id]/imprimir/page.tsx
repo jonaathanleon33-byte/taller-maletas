@@ -40,7 +40,7 @@ export default async function ImprimirVentaPage({
         <BotonImprimir />
       </div>
 
-      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:shadow-none">
+      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[58mm] print:rounded-none print:p-1 print:shadow-none">
         <ReciboImprimible
           numeroRecibo={`V-${id.slice(0, 8).toUpperCase()}`}
           comprobante={comprobante}
