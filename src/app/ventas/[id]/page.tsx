@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { InfoRow } from "@/components/InfoRow";
@@ -87,6 +88,13 @@ export default async function VentaPage({
           </svg>
           Notificar por WhatsApp
         </a>
+
+        <Link
+          href={`/ventas/${id}/imprimir`}
+          className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-base font-semibold text-slate-700 active:bg-slate-50"
+        >
+          Imprimir comprobante
+        </Link>
       </main>
     </div>
   );

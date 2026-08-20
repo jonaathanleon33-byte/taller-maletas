@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { CrearComprobanteButton } from "@/components/CrearComprobanteButton";
@@ -62,13 +63,21 @@ export default async function ComprobantePage({
             <CrearComprobanteButton ordenId={orden.id} />
           </div>
         ) : (
-          <ComprobanteEditor
-            path={path}
-            comprobante={comprobante}
-            items={items ?? []}
-            servicios={servicios ?? []}
-            tecnicos={tecnicos}
-          />
+          <>
+            <ComprobanteEditor
+              path={path}
+              comprobante={comprobante}
+              items={items ?? []}
+              servicios={servicios ?? []}
+              tecnicos={tecnicos}
+            />
+            <Link
+              href={`/ordenes/${orden.id}/comprobante/imprimir`}
+              className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-base font-semibold text-slate-700 active:bg-slate-50"
+            >
+              Imprimir comprobante
+            </Link>
+          </>
         )}
       </main>
     </div>
