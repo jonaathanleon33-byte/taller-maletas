@@ -121,7 +121,7 @@ export function NuevaOrdenForm({
             autoComplete="do-not-autofill"
             defaultValue={prefill?.cliente_telefono ?? ""}
             className={inputClass}
-            placeholder="Ej: 5491122334455"
+            placeholder="Ej: 3001234567"
           />
         </div>
       </section>

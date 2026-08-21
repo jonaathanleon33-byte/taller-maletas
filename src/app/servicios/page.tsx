@@ -44,7 +44,7 @@ export default async function ServiciosPage() {
         ) : (
           <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 py-16 text-center text-slate-500">
             <p className="font-medium">Todavía no cargaste servicios</p>
-            <p className="text-sm">Agregá el primero con el formulario de arriba.</p>
+            <p className="text-sm">Agrega el primero con el formulario de arriba.</p>
           </div>
         )}
       </main>

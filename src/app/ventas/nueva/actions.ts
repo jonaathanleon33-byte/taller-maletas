@@ -13,10 +13,10 @@ export async function crearVenta(
   const cliente_telefono = String(formData.get("cliente_telefono") ?? "").trim();
 
   if (!cliente_nombre) {
-    return { error: "Poné el nombre del cliente." };
+    return { error: "Ingresa el nombre del cliente." };
   }
   if (!cliente_telefono) {
-    return { error: "Poné el teléfono del cliente." };
+    return { error: "Ingresa el teléfono del cliente." };
   }
 
   const supabase = await createClient();

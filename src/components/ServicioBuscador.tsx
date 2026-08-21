@@ -72,7 +72,7 @@ export function ServicioBuscador({
 
       {open && query.trim() && matches.length === 0 ? (
         <div className="absolute z-10 mt-1 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500 shadow-lg">
-          Sin resultados. Podés cargarlo manual abajo.
+          Sin resultados. Puedes cargarlo manual abajo.
         </div>
       ) : null}
     </div>

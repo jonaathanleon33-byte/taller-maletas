@@ -75,7 +75,7 @@ export function AgregarItemForm({
             setServicioId("");
           }}
           className={inputClass}
-          placeholder="O escribí una descripción manual"
+          placeholder="O escribe una descripción manual"
         />
       </div>
 

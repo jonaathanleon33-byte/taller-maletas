@@ -39,7 +39,7 @@ export async function crearOrden(
     !dano_descripcion ||
     !ubicacion
   ) {
-    return { error: "Completá todos los campos obligatorios." };
+    return { error: "Completa todos los campos obligatorios." };
   }
 
   const fotos = formData
@@ -47,7 +47,7 @@ export async function crearOrden(
     .filter((f): f is File => f instanceof File && f.size > 0);
 
   if (fotos.length < 1 || fotos.length > 3) {
-    return { error: "Subí entre 1 y 3 fotos de la maleta." };
+    return { error: "Sube entre 1 y 3 fotos de la maleta." };
   }
 
   const fecha_recibido = fecha_recibidoRaw

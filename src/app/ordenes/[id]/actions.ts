@@ -15,7 +15,7 @@ export async function cambiarEstado(
   const estado = String(formData.get("estado") ?? "") as Estado;
 
   if (!estado) {
-    return { error: "Elegí un estado." };
+    return { error: "Elige un estado." };
   }
 
   const supabase = await createClient();

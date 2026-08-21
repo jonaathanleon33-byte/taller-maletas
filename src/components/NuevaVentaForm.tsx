@@ -67,7 +67,7 @@ export function NuevaVentaForm({ clientes }: { clientes: Cliente[] }) {
             value={telefono}
             onChange={(e) => handleTelefonoChange(e.target.value)}
             className={inputClass}
-            placeholder="Ej: 5491122334455"
+            placeholder="Ej: 3001234567"
           />
           {clientes.length > 0 ? (
             <datalist id="clientes-telefono-list">

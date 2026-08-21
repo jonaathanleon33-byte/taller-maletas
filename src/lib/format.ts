@@ -1,6 +1,6 @@
 export function formatFecha(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("es-AR", {
+  return new Date(iso).toLocaleDateString("es-CO", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -9,7 +9,7 @@ export function formatFecha(iso: string | null) {
 
 export function formatFechaHora(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString("es-AR", {
+  return new Date(iso).toLocaleString("es-CO", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

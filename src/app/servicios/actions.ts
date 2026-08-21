@@ -14,10 +14,10 @@ export async function crearServicio(
   const precio = Number(precioRaw);
 
   if (!nombre) {
-    return { error: "Poné un nombre para el servicio." };
+    return { error: "Ingresa un nombre para el servicio." };
   }
   if (!precioRaw || Number.isNaN(precio) || precio < 0) {
-    return { error: "Poné un precio válido." };
+    return { error: "Ingresa un precio válido." };
   }
 
   const supabase = await createClient();

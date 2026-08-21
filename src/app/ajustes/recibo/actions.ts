@@ -28,7 +28,7 @@ export async function actualizarNegocio(
   const logo = formData.get("logo");
 
   if (!nombre || !direccion || !telefono || !pie_texto) {
-    return { error: "Completá al menos nombre, dirección, teléfono y pie de página." };
+    return { error: "Completa al menos nombre, dirección, teléfono y pie de página." };
   }
 
   const supabase = await createClient();

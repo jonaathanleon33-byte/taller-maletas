@@ -19,7 +19,7 @@ export async function agregarItem(
   const descuentoPct = Number(formData.get("descuento_pct") || 0);
 
   if (!descripcion) {
-    return { error: "Poné una descripción para el ítem." };
+    return { error: "Ingresa una descripción para el ítem." };
   }
   if (Number.isNaN(precioUnitario) || precioUnitario < 0) {
     return { error: "El precio no es válido." };

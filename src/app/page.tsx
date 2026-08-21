@@ -137,7 +137,7 @@ export default async function Home({
             <p className="text-sm">
               {q
                 ? "Probá con otro número de recibo, nombre o teléfono."
-                : "Creá la primera con el botón “Nueva”."}
+                : "Crea la primera con el botón “Nueva”."}
             </p>
           </div>
         ) : (
