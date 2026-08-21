@@ -42,7 +42,7 @@ export default async function ImprimirVentaPage({
   );
   const numeroRecibo = `V-${String(comprobante.numero_venta).padStart(6, "0")}`;
   const nombre = (comprobante.cliente_nombre ?? "").split(" ")[0];
-  const mensaje = `Hola ${nombre}, acá tenés tu recibo ${numeroRecibo}. Total: ${formatMoney(total)}.`;
+  const mensaje = `Hola ${nombre}, aquí tienes tu recibo ${numeroRecibo}. Total: ${formatMoney(total)}.`;
 
   return (
     <div className="flex flex-1 flex-col items-center gap-4 bg-slate-100 px-4 py-6 print:bg-white print:py-0">
@@ -52,11 +52,9 @@ export default async function ImprimirVentaPage({
         </Link>
       </div>
 
-      <div
-        id="recibo-capture"
-        className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[58mm] print:rounded-none print:p-1 print:shadow-none"
-      >
+      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[58mm] print:rounded-none print:p-1 print:shadow-none">
         <ReciboImprimible
+          id="recibo-capture"
           negocio={negocio}
           numeroRecibo={numeroRecibo}
           fecha={comprobante.created_at}

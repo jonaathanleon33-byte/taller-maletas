@@ -23,6 +23,7 @@ function totalesDe(items: ComprobanteItem[], comprobante: Comprobante | null) {
 }
 
 export function ReciboImprimible({
+  id,
   negocio,
   numeroRecibo,
   fecha,
@@ -31,6 +32,7 @@ export function ReciboImprimible({
   maletas,
   fechaEntrega,
 }: {
+  id?: string;
   negocio: NegocioConfig;
   numeroRecibo: string;
   fecha: string;
@@ -53,7 +55,10 @@ export function ReciboImprimible({
   const pieLineas = negocio.pie_texto.split("\n").filter(Boolean);
 
   return (
-    <div className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[40mm] print:text-[7px] print:leading-snug">
+    <div
+      id={id}
+      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[40mm] print:text-[7px] print:leading-snug print:font-bold"
+    >
       <div className="flex flex-col items-center text-center">
         {negocio.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element

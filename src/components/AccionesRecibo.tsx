@@ -2,6 +2,22 @@
 
 import { useState } from "react";
 
+function reglasDeImpresion(rules: CSSRuleList): string {
+  let css = "";
+  for (const rule of Array.from(rules)) {
+    if (rule instanceof CSSMediaRule && rule.media.mediaText.includes("print")) {
+      css += Array.from(rule.cssRules)
+        .map((r) => r.cssText)
+        .join("\n");
+    } else if ("cssRules" in rule && (rule as CSSGroupingRule).cssRules) {
+      // Tailwind anida las reglas print: dentro de @layer, así que hay
+      // que bajar recursivamente por cualquier at-rule contenedora.
+      css += reglasDeImpresion((rule as CSSGroupingRule).cssRules);
+    }
+  }
+  return css;
+}
+
 export function AccionesRecibo({
   targetId,
   telefono,
@@ -27,8 +43,27 @@ export function AccionesRecibo({
         const html2canvas = (await import("html2canvas")).default;
         const canvas = await html2canvas(el, {
           backgroundColor: "#ffffff",
-          scale: 2,
+          scale: 4,
           useCORS: true,
+          onclone: (clonedDoc) => {
+            // Aplicamos las mismas reglas @media print (ancho/letra del
+            // ticket térmico) a la captura, así la imagen de WhatsApp
+            // coincide con lo que sale impreso en vez de con la vista
+            // ancha de pantalla.
+            const css = Array.from(document.styleSheets)
+              .map((sheet) => {
+                try {
+                  return reglasDeImpresion(sheet.cssRules);
+                } catch {
+                  return "";
+                }
+              })
+              .join("\n");
+
+            const style = clonedDoc.createElement("style");
+            style.textContent = css;
+            clonedDoc.head.appendChild(style);
+          },
         });
         const blob: Blob | null = await new Promise((resolve) =>
           canvas.toBlob(resolve, "image/png"),
