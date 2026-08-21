@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { linkWhatsapp } from "@/lib/estado";
 
 function reglasDeImpresion(rules: CSSRuleList): string {
   let css = "";
@@ -28,11 +29,6 @@ export function AccionesRecibo({
   mensaje: string;
 }) {
   const [enviando, setEnviando] = useState(false);
-
-  function linkWhatsappTexto() {
-    const soloDigitos = telefono.replace(/[^\d]/g, "");
-    return `https://wa.me/${soloDigitos}?text=${encodeURIComponent(mensaje)}`;
-  }
 
   async function enviarWhatsapp() {
     const el = document.getElementById(targetId);
@@ -88,7 +84,7 @@ export function AccionesRecibo({
     // Sin soporte para compartir archivos (o falló): navegamos a WhatsApp
     // en la misma pestaña con el mensaje de texto. No usamos window.open
     // porque el navegador lo bloquea después del trabajo async de arriba.
-    window.location.href = linkWhatsappTexto();
+    window.location.href = linkWhatsapp(telefono, mensaje);
   }
 
   return (

@@ -114,7 +114,15 @@ export function mensajeWhatsapp(orden: Pick<Orden, "cliente_nombre" | "numero_re
   }
 }
 
-export function linkWhatsapp(telefono: string, mensaje: string) {
+// Los números se guardan a nivel local (10 dígitos, sin el 57 de
+// Colombia), pero wa.me necesita el código de país completo o WhatsApp
+// no encuentra el contacto y termina pidiendo buscarlo a mano.
+export function numeroWhatsapp(telefono: string) {
   const soloDigitos = telefono.replace(/[^\d]/g, "");
-  return `https://wa.me/${soloDigitos}?text=${encodeURIComponent(mensaje)}`;
+  if (soloDigitos.length === 10) return `57${soloDigitos}`;
+  return soloDigitos;
+}
+
+export function linkWhatsapp(telefono: string, mensaje: string) {
+  return `https://wa.me/${numeroWhatsapp(telefono)}?text=${encodeURIComponent(mensaje)}`;
 }
