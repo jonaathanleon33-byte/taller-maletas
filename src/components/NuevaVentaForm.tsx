@@ -38,6 +38,7 @@ export function NuevaVentaForm({ clientes }: { clientes: Cliente[] }) {
             id="cliente_nombre"
             name="cliente_nombre"
             list="clientes-nombre-list"
+            autoComplete="off"
             required
             value={nombre}
             onChange={(e) => handleNombreChange(e.target.value)}
@@ -61,6 +62,7 @@ export function NuevaVentaForm({ clientes }: { clientes: Cliente[] }) {
             name="cliente_telefono"
             type="tel"
             list="clientes-telefono-list"
+            autoComplete="off"
             required
             value={telefono}
             onChange={(e) => handleTelefonoChange(e.target.value)}

@@ -86,6 +86,7 @@ export function NuevaOrdenForm({
             id="cliente_nombre"
             name="cliente_nombre"
             required
+            autoComplete="off"
             defaultValue={prefill?.cliente_nombre ?? ""}
             className={inputClass}
           />
@@ -100,6 +101,7 @@ export function NuevaOrdenForm({
             name="cliente_telefono"
             type="tel"
             required
+            autoComplete="off"
             defaultValue={prefill?.cliente_telefono ?? ""}
             className={inputClass}
             placeholder="Ej: 5491122334455"
