@@ -74,9 +74,7 @@ export function ReciboImprimible({
         <p>{negocio.telefono}</p>
         <p>{negocio.web}</p>
         {fechaEntrega ? (
-          <p className="mt-1">
-            Entrega {fechaEntrega} ( &nbsp; )
-          </p>
+          <p className="mt-1">Entrega {fechaEntrega}</p>
         ) : null}
       </div>
 
