@@ -108,7 +108,6 @@ export default async function ImprimirComprobantePage({
       </div>
 
       <AccionesRecibo
-        targetId="recibo-capture"
         telefono={orden.cliente_telefono}
         mensaje={mensaje}
       />

@@ -65,7 +65,6 @@ export default async function ImprimirVentaPage({
       </div>
 
       <AccionesRecibo
-        targetId="recibo-capture"
         telefono={comprobante.cliente_telefono ?? ""}
         mensaje={mensaje}
       />
