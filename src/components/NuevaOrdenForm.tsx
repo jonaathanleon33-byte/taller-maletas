@@ -57,24 +57,26 @@ export function NuevaOrdenForm({
           Recibo y cliente
         </h2>
         {prefill?.numero_recibo ? (
+          <div>
+            <label className={labelClass} htmlFor="numero_recibo">
+              Número de recibo
+            </label>
+            <input
+              id="numero_recibo"
+              name="numero_recibo"
+              readOnly
+              value={prefill.numero_recibo}
+              className={`${inputClass} bg-slate-50 text-slate-500`}
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Agregando otra maleta al mismo recibo.
+            </p>
+          </div>
+        ) : (
           <p className="-mt-2 text-xs text-slate-500">
-            Agregando otra maleta al mismo recibo.
+            El número de recibo se asigna automáticamente al guardar.
           </p>
-        ) : null}
-
-        <div>
-          <label className={labelClass} htmlFor="numero_recibo">
-            Número de recibo *
-          </label>
-          <input
-            id="numero_recibo"
-            name="numero_recibo"
-            required
-            defaultValue={prefill?.numero_recibo ?? ""}
-            className={inputClass}
-            placeholder="Ej: 00123"
-          />
-        </div>
+        )}
 
         <div>
           <label className={labelClass} htmlFor="cliente_nombre">

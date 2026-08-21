@@ -44,8 +44,12 @@ export type HistorialEstado = {
 
 export type OrdenInsert = Omit<
   Orden,
-  "id" | "created_at" | "updated_at" | "estado" | "fecha_entregada"
-> & { estado?: Estado; fecha_entregada?: string | null };
+  "id" | "created_at" | "updated_at" | "estado" | "fecha_entregada" | "numero_recibo"
+> & {
+  estado?: Estado;
+  fecha_entregada?: string | null;
+  numero_recibo?: string;
+};
 
 export type MetodoPago =
   | "efectivo"

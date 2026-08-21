@@ -15,7 +15,7 @@ export async function crearOrden(
   _prevState: CrearOrdenState,
   formData: FormData,
 ): Promise<CrearOrdenState> {
-  const numero_recibo = campoRequerido(formData, "numero_recibo");
+  const numero_recibo = campoRequerido(formData, "numero_recibo") || null;
   const cliente_nombre = campoRequerido(formData, "cliente_nombre");
   const cliente_telefono = campoRequerido(formData, "cliente_telefono");
   const marca = campoRequerido(formData, "marca");
@@ -30,7 +30,6 @@ export async function crearOrden(
   const fecha_prometida = campoRequerido(formData, "fecha_prometida") || null;
 
   if (
-    !numero_recibo ||
     !cliente_nombre ||
     !cliente_telefono ||
     !marca ||
@@ -60,7 +59,7 @@ export async function crearOrden(
   const { data: orden, error: insertError } = await supabase
     .from("ordenes")
     .insert({
-      numero_recibo,
+      ...(numero_recibo ? { numero_recibo } : {}),
       cliente_nombre,
       cliente_telefono,
       marca,
