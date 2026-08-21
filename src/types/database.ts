@@ -1,4 +1,4 @@
-export type Tamano = "cabina" | "mediana" | "grande";
+export type Tamano = "pequeña" | "mediana" | "grande";
 export type TipoMaleta = "fibra" | "lona" | "morral" | "maletin" | "estuche";
 export type Estado =
   | "recibida"

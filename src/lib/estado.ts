@@ -17,7 +17,7 @@ export const ESTADO_LABELS: Record<Estado, string> = {
 };
 
 export const TAMANO_LABELS: Record<Tamano, string> = {
-  cabina: "Cabina",
+  "pequeña": "Pequeña",
   mediana: "Mediana",
   grande: "Grande",
 };
