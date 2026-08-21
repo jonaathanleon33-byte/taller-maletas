@@ -2,9 +2,23 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { OrdenCard } from "@/components/OrdenCard";
+import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
 import { createClient } from "@/lib/supabase/server";
 import type { Orden } from "@/types/database";
+
+function agruparPorRecibo(ordenes: Orden[]) {
+  const grupos = new Map<string, Orden[]>();
+  for (const orden of ordenes) {
+    const grupo = grupos.get(orden.numero_recibo);
+    if (grupo) {
+      grupo.push(orden);
+    } else {
+      grupos.set(orden.numero_recibo, [orden]);
+    }
+  }
+  return Array.from(grupos.values());
+}
 
 export const dynamic = "force-dynamic";
 
@@ -128,9 +142,13 @@ export default async function Home({
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
-            {ordenes.map((orden) => (
-              <li key={orden.id}>
-                <OrdenCard orden={orden} />
+            {agruparPorRecibo(ordenes).map((grupo) => (
+              <li key={grupo[0].id}>
+                {grupo.length > 1 ? (
+                  <OrdenCardGrupo ordenes={grupo} />
+                ) : (
+                  <OrdenCard orden={grupo[0]} />
+                )}
               </li>
             ))}
           </ul>
