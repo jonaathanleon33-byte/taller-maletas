@@ -78,9 +78,6 @@ export async function crearOrden(
     .single();
 
   if (insertError || !orden) {
-    if (insertError?.code === "23505") {
-      return { error: `Ya existe una orden con el recibo #${numero_recibo}.` };
-    }
     return { error: insertError?.message ?? "No se pudo crear la orden." };
   }
 

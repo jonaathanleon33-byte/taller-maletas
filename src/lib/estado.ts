@@ -23,10 +23,11 @@ export const TAMANO_LABELS: Record<Tamano, string> = {
 };
 
 export const TIPO_LABELS: Record<TipoMaleta, string> = {
-  rigida: "Rígida",
-  tela: "Tela",
-  mochila: "Mochila",
+  fibra: "Fibra",
+  lona: "Lona",
+  morral: "Morral",
   maletin: "Maletín",
+  estuche: "Estuche",
 };
 
 const DIAS_ALERTA = 30;

@@ -132,6 +132,13 @@ export default async function OrdenDetallePage({
         ) : null}
 
         <Link
+          href={`/ordenes/nueva?recibo=${encodeURIComponent(orden.numero_recibo)}&cliente=${encodeURIComponent(orden.cliente_nombre)}&telefono=${encodeURIComponent(orden.cliente_telefono)}`}
+          className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white py-3 text-center text-sm font-semibold text-slate-700 active:bg-slate-50"
+        >
+          + Agregar otra maleta a este recibo
+        </Link>
+
+        <Link
           href={`/ordenes/${orden.id}/comprobante`}
           className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 active:bg-slate-50"
         >

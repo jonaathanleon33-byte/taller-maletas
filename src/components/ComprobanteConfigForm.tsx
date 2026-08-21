@@ -68,6 +68,7 @@ export function ComprobanteConfigForm({
             id="atendido_por"
             name="atendido_por"
             list="tecnicos-list-comprobante"
+            autoComplete="off"
             defaultValue={comprobante.atendido_por ?? ""}
             className={inputClass}
           />

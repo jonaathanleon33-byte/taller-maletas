@@ -20,7 +20,17 @@ const inputClass =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-slate-500 focus:outline-none";
 const labelClass = "mb-1 block text-sm font-medium text-slate-700";
 
-export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
+export function NuevaOrdenForm({
+  tecnicos,
+  prefill,
+}: {
+  tecnicos: string[];
+  prefill?: {
+    numero_recibo?: string;
+    cliente_nombre?: string;
+    cliente_telefono?: string;
+  };
+}) {
   const [state, formAction, pending] = useActionState(
     crearOrden,
     initialState,
@@ -46,6 +56,11 @@ export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
           Recibo y cliente
         </h2>
+        {prefill?.numero_recibo ? (
+          <p className="-mt-2 text-xs text-slate-500">
+            Agregando otra maleta al mismo recibo.
+          </p>
+        ) : null}
 
         <div>
           <label className={labelClass} htmlFor="numero_recibo">
@@ -55,6 +70,7 @@ export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
             id="numero_recibo"
             name="numero_recibo"
             required
+            defaultValue={prefill?.numero_recibo ?? ""}
             className={inputClass}
             placeholder="Ej: 00123"
           />
@@ -68,6 +84,7 @@ export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
             id="cliente_nombre"
             name="cliente_nombre"
             required
+            defaultValue={prefill?.cliente_nombre ?? ""}
             className={inputClass}
           />
         </div>
@@ -81,6 +98,7 @@ export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
             name="cliente_telefono"
             type="tel"
             required
+            defaultValue={prefill?.cliente_telefono ?? ""}
             className={inputClass}
             placeholder="Ej: 5491122334455"
           />
@@ -222,6 +240,7 @@ export function NuevaOrdenForm({ tecnicos }: { tecnicos: string[] }) {
             id="tecnico_asignado"
             name="tecnico_asignado"
             list="tecnicos-list"
+            autoComplete="off"
             className={inputClass}
             placeholder="Elegir o escribir un nombre"
           />

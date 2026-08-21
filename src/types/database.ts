@@ -1,5 +1,5 @@
 export type Tamano = "cabina" | "mediana" | "grande";
-export type TipoMaleta = "rigida" | "tela" | "mochila" | "maletin";
+export type TipoMaleta = "fibra" | "lona" | "morral" | "maletin" | "estuche";
 export type Estado =
   | "recibida"
   | "en_reparacion"
