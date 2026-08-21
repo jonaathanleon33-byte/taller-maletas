@@ -59,10 +59,10 @@ export default async function ImprimirVentaPage({
         <ReciboImprimible
           negocio={negocio}
           numeroRecibo={numeroRecibo}
-          comprobante={comprobante}
-          items={items ?? []}
+          fecha={comprobante.created_at}
           clienteNombre={comprobante.cliente_nombre ?? ""}
           clienteTelefono={comprobante.cliente_telefono ?? ""}
+          maletas={[{ comprobante, items: items ?? [] }]}
         />
       </div>
 

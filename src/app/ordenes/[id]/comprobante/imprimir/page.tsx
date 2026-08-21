@@ -7,6 +7,7 @@ import { obtenerNegocioConfig } from "@/lib/negocio";
 import { TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
 import { formatFecha } from "@/lib/format";
 import { calcularTotales, formatMoney } from "@/lib/money";
+import type { Comprobante, ComprobanteItem } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -38,19 +39,50 @@ export default async function ImprimirComprobantePage({
     notFound();
   }
 
-  const { data: items } = await supabase
-    .from("comprobante_items")
+  const { data: hermanas } = await supabase
+    .from("ordenes")
     .select("*")
-    .eq("comprobante_id", comprobante.id)
+    .eq("numero_recibo", orden.numero_recibo)
     .order("created_at", { ascending: true });
+
+  const ordenesDelRecibo = hermanas ?? [orden];
+
+  const maletas = await Promise.all(
+    ordenesDelRecibo.map(async (o) => {
+      const { data: comp } = await supabase
+        .from("comprobantes")
+        .select("*")
+        .eq("orden_id", o.id)
+        .maybeSingle();
+
+      let items: ComprobanteItem[] = [];
+      if (comp) {
+        const { data } = await supabase
+          .from("comprobante_items")
+          .select("*")
+          .eq("comprobante_id", comp.id)
+          .order("created_at", { ascending: true });
+        items = data ?? [];
+      }
+
+      return {
+        info: `${o.marca} ${o.color} · ${TAMANO_LABELS[o.tamano]} · ${TIPO_LABELS[o.tipo]}`,
+        comprobante: comp as Comprobante | null,
+        items,
+      };
+    }),
+  );
 
   const negocio = await obtenerNegocioConfig();
 
-  const { total } = calcularTotales(
-    items ?? [],
-    comprobante.descuento_global,
-    comprobante.impuestos,
-  );
+  const total = maletas.reduce((acc, m) => {
+    if (!m.comprobante) return acc;
+    return (
+      acc +
+      calcularTotales(m.items, m.comprobante.descuento_global, m.comprobante.impuestos)
+        .total
+    );
+  }, 0);
   const nombre = orden.cliente_nombre.split(" ")[0];
   const mensaje = `Hola ${nombre}, acá tenés tu recibo #${orden.numero_recibo}. Total: ${formatMoney(total)}.`;
 
@@ -69,11 +101,10 @@ export default async function ImprimirComprobantePage({
         <ReciboImprimible
           negocio={negocio}
           numeroRecibo={orden.numero_recibo}
-          comprobante={comprobante}
-          items={items ?? []}
+          fecha={comprobante.created_at}
           clienteNombre={orden.cliente_nombre}
           clienteTelefono={orden.cliente_telefono}
-          maletaInfo={`${orden.marca} ${orden.color} · ${TAMANO_LABELS[orden.tamano]} · ${TIPO_LABELS[orden.tipo]}`}
+          maletas={maletas}
           fechaEntrega={orden.fecha_prometida ? formatFecha(orden.fecha_prometida) : undefined}
         />
       </div>
