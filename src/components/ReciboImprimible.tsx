@@ -53,7 +53,7 @@ export function ReciboImprimible({
   const pieLineas = negocio.pie_texto.split("\n").filter(Boolean);
 
   return (
-    <div className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[54mm] print:text-[9px] print:leading-snug">
+    <div className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[40mm] print:text-[7px] print:leading-snug">
       <div className="flex flex-col items-center text-center">
         {negocio.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -102,7 +102,7 @@ export function ReciboImprimible({
           </div>
           <div className="flex justify-between">
             <span>Atendido por:</span>
-            <span>{principal.atendido_por || "—"}</span>
+            <span>{principal.atendido_por || "-"}</span>
           </div>
         </>
       ) : null}
@@ -125,7 +125,7 @@ export function ReciboImprimible({
           <hr className="my-2 border-dashed border-black print:my-1" />
           {maletas.map((m, i) => (
             <p key={i}>
-              {i + 1}. {m.info ?? "—"}
+              {i + 1}. {m.info ?? "-"}
             </p>
           ))}
         </>
@@ -145,8 +145,9 @@ export function ReciboImprimible({
                 {multiples ? (
                   <p className="font-bold">
                     Maleta {i + 1}
+                    {m.comprobante?.atendido_por ? ` - ${m.comprobante.atendido_por}` : ""}
                     {m.comprobante
-                      ? ` — ${m.comprobante.atendido_por || "—"} — ${METODO_PAGO_LABELS[m.comprobante.metodo_pago]}`
+                      ? ` - ${METODO_PAGO_LABELS[m.comprobante.metodo_pago]}`
                       : ""}
                   </p>
                 ) : null}
