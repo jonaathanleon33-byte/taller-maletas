@@ -111,15 +111,18 @@ export function ReciboImprimible({
       ) : null}
       <div className="flex justify-between gap-2">
         <span className="shrink-0">Cliente:</span>
-        <span className="text-right">
-          {clienteNombre}
-          {!multiples && maletas[0]?.info ? ` ${maletas[0].info}` : ""}
-        </span>
+        <span className="text-right">{clienteNombre}</span>
       </div>
       <div className="flex justify-between gap-2">
         <span className="shrink-0">Teléfono:</span>
         <span className="text-right">{clienteTelefono}</span>
       </div>
+      {!multiples && maletas[0]?.info ? (
+        <div className="flex justify-between gap-2">
+          <span className="shrink-0">Maleta:</span>
+          <span className="text-right">{maletas[0].info}</span>
+        </div>
+      ) : null}
 
       {multiples ? (
         <>
