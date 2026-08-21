@@ -5,6 +5,7 @@ import { OrdenCard } from "@/components/OrdenCard";
 import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
 import { createClient } from "@/lib/supabase/server";
+import { obtenerNegocioConfig } from "@/lib/negocio";
 import type { Orden } from "@/types/database";
 
 function agruparPorRecibo(ordenes: Orden[]) {
@@ -45,6 +46,7 @@ export default async function Home({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
+  const negocio = await obtenerNegocioConfig();
 
   const missingEnv =
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -66,7 +68,16 @@ export default async function Home({
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div
+      className="flex flex-1 flex-col bg-slate-50 bg-cover bg-center bg-no-repeat"
+      style={
+        negocio.fondo_home_url
+          ? {
+              backgroundImage: `linear-gradient(rgba(248,250,252,0.88), rgba(248,250,252,0.88)), url(${negocio.fondo_home_url})`,
+            }
+          : undefined
+      }
+    >
       <AppHeader
         title="Taller de Maletas"
         action={

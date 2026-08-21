@@ -101,6 +101,7 @@ export type NegocioConfig = {
   web: string;
   pie_texto: string;
   logo_url: string | null;
+  fondo_home_url: string | null;
   updated_at: string;
 };
 

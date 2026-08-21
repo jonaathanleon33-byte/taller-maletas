@@ -11,6 +11,7 @@ const NEGOCIO_DEFAULT: NegocioConfig = {
   pie_texto:
     "Gracias por confiar en nosotros\nRetiro máx. 30 días posfecha de entrega. Luego, abandono y no nos hacemos responsables.\nPara la entrega presente este recibo. Gracias.",
   logo_url: null,
+  fondo_home_url: null,
   updated_at: "",
 };
 

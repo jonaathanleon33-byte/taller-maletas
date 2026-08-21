@@ -21,12 +21,20 @@ export function AjustesReciboForm({ negocio }: { negocio: NegocioConfig }) {
   );
   const [preview, setPreview] = useState<string | null>(null);
   const [quitarLogo, setQuitarLogo] = useState(false);
+  const [previewFondo, setPreviewFondo] = useState<string | null>(null);
+  const [quitarFondo, setQuitarFondo] = useState(false);
 
   useEffect(() => {
     return () => {
       if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
+
+  useEffect(() => {
+    return () => {
+      if (previewFondo) URL.revokeObjectURL(previewFondo);
+    };
+  }, [previewFondo]);
 
   function handleLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -35,7 +43,15 @@ export function AjustesReciboForm({ negocio }: { negocio: NegocioConfig }) {
     if (file) setQuitarLogo(false);
   }
 
+  function handleFondo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (previewFondo) URL.revokeObjectURL(previewFondo);
+    setPreviewFondo(file ? URL.createObjectURL(file) : null);
+    if (file) setQuitarFondo(false);
+  }
+
   const logoActual = quitarLogo ? null : (preview ?? negocio.logo_url);
+  const fondoActual = quitarFondo ? null : (previewFondo ?? negocio.fondo_home_url);
 
   return (
     <form
@@ -73,6 +89,39 @@ export function AjustesReciboForm({ negocio }: { negocio: NegocioConfig }) {
               className="h-4 w-4 rounded border-slate-300"
             />
             Quitar logo y usar el ícono predeterminado
+          </label>
+        ) : null}
+      </div>
+
+      <div>
+        <label className={labelClass}>Fondo de la página principal</label>
+        {fondoActual ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={fondoActual}
+            alt="Fondo actual"
+            className="mb-2 h-28 w-full rounded-lg border border-slate-200 object-cover"
+          />
+        ) : (
+          <p className="mb-2 text-sm text-slate-500">Sin fondo configurado.</p>
+        )}
+        <input
+          type="file"
+          name="fondo_home"
+          accept="image/*"
+          onChange={handleFondo}
+          className="text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
+        />
+        {negocio.fondo_home_url ? (
+          <label className="mt-2 flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              name="quitar_fondo"
+              checked={quitarFondo}
+              onChange={(e) => setQuitarFondo(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            Quitar fondo
           </label>
         ) : null}
       </div>
