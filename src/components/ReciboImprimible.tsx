@@ -8,6 +8,7 @@ const METODO_PAGO_LABELS: Record<Comprobante["metodo_pago"], string> = {
   tarjeta: "Tarjeta",
   transferencia: "Transferencia",
   otro: "Otro",
+  pago_al_recoger: "Pago al recoger",
 };
 
 export function ReciboImprimible({

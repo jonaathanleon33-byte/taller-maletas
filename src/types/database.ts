@@ -47,7 +47,12 @@ export type OrdenInsert = Omit<
   "id" | "created_at" | "updated_at" | "estado" | "fecha_entregada"
 > & { estado?: Estado; fecha_entregada?: string | null };
 
-export type MetodoPago = "efectivo" | "tarjeta" | "transferencia" | "otro";
+export type MetodoPago =
+  | "efectivo"
+  | "tarjeta"
+  | "transferencia"
+  | "otro"
+  | "pago_al_recoger";
 
 export type Servicio = {
   id: string;
