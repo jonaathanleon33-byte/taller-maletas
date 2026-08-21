@@ -7,6 +7,7 @@ import {
 } from "@/app/ordenes/nueva/actions";
 import { ESTADOS, TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
 import { EstadoSelect } from "@/components/EstadoSelect";
+import { comprimirImagen } from "@/lib/comprimir-imagen";
 
 const initialState: CrearOrdenState = null;
 
@@ -36,18 +37,34 @@ export function NuevaOrdenForm({
     initialState,
   );
   const [previews, setPreviews] = useState<string[]>([]);
+  const [comprimiendo, setComprimiendo] = useState(false);
   const [fechaRecibido] = useState(ahoraLocal);
 
   useEffect(() => {
     return () => previews.forEach((url) => URL.revokeObjectURL(url));
   }, [previews]);
 
-  function handleFotos(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).slice(0, 3);
-    setPreviews((prev) => {
-      prev.forEach((url) => URL.revokeObjectURL(url));
-      return files.map((f) => URL.createObjectURL(f));
-    });
+  async function handleFotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const input = e.target;
+    const files = Array.from(input.files ?? []).slice(0, 3);
+    if (files.length === 0) return;
+
+    setComprimiendo(true);
+    try {
+      const comprimidas = await Promise.all(
+        files.map((f) => comprimirImagen(f)),
+      );
+      const dt = new DataTransfer();
+      comprimidas.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+
+      setPreviews((prev) => {
+        prev.forEach((url) => URL.revokeObjectURL(url));
+        return comprimidas.map((f) => URL.createObjectURL(f));
+      });
+    } finally {
+      setComprimiendo(false);
+    }
   }
 
   return (
@@ -203,6 +220,9 @@ export function NuevaOrdenForm({
           onChange={handleFotos}
           className="text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
         />
+        {comprimiendo ? (
+          <p className="text-sm text-slate-500">Preparando fotos…</p>
+        ) : null}
         {previews.length > 0 ? (
           <div className="flex gap-2">
             {previews.map((src, i) => (
@@ -303,10 +323,10 @@ export function NuevaOrdenForm({
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || comprimiendo}
         className="rounded-lg bg-slate-900 py-3 text-center text-base font-semibold text-white active:bg-slate-700 disabled:opacity-60"
       >
-        {pending ? "Guardando…" : "Crear orden"}
+        {pending ? "Guardando…" : comprimiendo ? "Preparando fotos…" : "Crear orden"}
       </button>
     </form>
   );
