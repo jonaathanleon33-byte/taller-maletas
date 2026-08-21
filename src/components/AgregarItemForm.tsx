@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   agregarItem,
   type AgregarItemState,
@@ -29,12 +29,23 @@ export function AgregarItemForm({
   const [servicioId, setServicioId] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [precio, setPrecio] = useState("");
+  const autoEnviarRef = useRef(false);
 
   function handleSelect(servicio: Servicio) {
     setServicioId(servicio.id);
     setDescripcion(servicio.nombre);
     setPrecio(String(servicio.precio));
+    autoEnviarRef.current = true;
   }
+
+  // Esperamos a que los inputs controlados se actualicen en el DOM antes
+  // de enviar, para no mandar los valores anteriores.
+  useEffect(() => {
+    if (autoEnviarRef.current) {
+      autoEnviarRef.current = false;
+      formRef.current?.requestSubmit();
+    }
+  }, [servicioId]);
 
   return (
     <form
