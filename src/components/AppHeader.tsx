@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 
 export function AppHeader({
   title,
+  titleIcon,
   backHref,
   action,
 }: {
   title: string;
+  titleIcon?: ReactNode;
   backHref?: string;
   action?: ReactNode;
 }) {
@@ -29,7 +31,8 @@ export function AppHeader({
           </svg>
         </Link>
       ) : null}
-      <h1 className="flex-1 truncate text-lg font-semibold text-slate-900">
+      {titleIcon}
+      <h1 className="flex-1 truncate text-base font-semibold text-slate-900 sm:text-lg">
         {title}
       </h1>
       {action}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
+import { LogoTaller } from "@/components/LogoTaller";
 import { OrdenCard } from "@/components/OrdenCard";
 import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
@@ -68,18 +69,21 @@ export default async function Home({
   }
 
   return (
-    <div
-      className="flex flex-1 flex-col bg-slate-50 bg-cover bg-center bg-no-repeat"
-      style={
-        negocio.fondo_home_url
-          ? {
-              backgroundImage: `linear-gradient(rgba(248,250,252,0.88), rgba(248,250,252,0.88)), url(${negocio.fondo_home_url})`,
-            }
-          : undefined
-      }
-    >
+    <div className="flex flex-1 flex-col bg-slate-50">
       <AppHeader
         title="Taller de Maletas"
+        titleIcon={
+          negocio.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={negocio.logo_url}
+              alt=""
+              className="h-8 w-8 shrink-0 rounded object-contain"
+            />
+          ) : (
+            <LogoTaller className="h-7 w-7 shrink-0 text-blue-700" />
+          )
+        }
         action={
           <div className="flex items-center gap-2">
             <Link
@@ -98,11 +102,22 @@ export default async function Home({
         }
       />
 
+      {negocio.fondo_home_url ? (
+        <div className="w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={negocio.fondo_home_url}
+            alt=""
+            className="h-36 w-full object-cover sm:h-44"
+          />
+        </div>
+      ) : null}
+
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
         <div className="mb-4 grid grid-cols-2 gap-2">
           <Link
             href="/ordenes/nueva"
-            className="flex h-11 items-center justify-center gap-1 rounded-lg bg-slate-900 text-sm font-medium text-white active:bg-slate-700"
+            className="flex h-11 items-center justify-center gap-1 rounded-lg bg-blue-700 text-sm font-medium text-white active:bg-blue-800"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
               <path
@@ -116,7 +131,7 @@ export default async function Home({
           </Link>
           <Link
             href="/ventas/nueva"
-            className="flex h-11 items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 active:bg-slate-100"
+            className="flex h-11 items-center justify-center gap-1 rounded-lg border border-blue-700 bg-white text-sm font-medium text-blue-700 active:bg-blue-50"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
               <path
