@@ -1,0 +1,49 @@
+import { TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
+import type { Orden } from "@/types/database";
+
+export function EtiquetaImprimible({
+  negocioNombre,
+  orden,
+}: {
+  negocioNombre: string;
+  orden: Orden;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-[320px] font-mono leading-relaxed text-black print:max-w-[46mm] print:font-bold print:leading-snug">
+      <p className="text-center text-[11px] font-bold uppercase tracking-wide print:text-[9px]">
+        {negocioNombre}
+      </p>
+
+      <p className="mt-1 text-center text-2xl font-black print:text-[16px]">
+        #{orden.numero_recibo}
+      </p>
+
+      <hr className="my-2 border-dashed border-black print:my-1" />
+
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 print:text-[8px] print:text-black">
+        Cliente
+      </p>
+      <p className="text-base font-bold print:text-[11px]">{orden.cliente_nombre}</p>
+      <p className="text-sm print:text-[9px]">{orden.cliente_telefono}</p>
+
+      <hr className="my-2 border-dashed border-black print:my-1" />
+
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 print:text-[8px] print:text-black">
+        Maleta
+      </p>
+      <p className="text-base font-bold print:text-[11px]">
+        {orden.marca} {orden.color}
+      </p>
+      <p className="text-sm print:text-[9px]">
+        {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
+      </p>
+
+      <hr className="my-2 border-dashed border-black print:my-1" />
+
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 print:text-[8px] print:text-black">
+        Servicio
+      </p>
+      <p className="text-base font-bold print:text-[11px]">{orden.dano_descripcion}</p>
+    </div>
+  );
+}
