@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { linkWhatsapp } from "@/lib/estado";
 
 function reglasDeImpresion(rules: CSSRuleList): string {
@@ -19,57 +20,45 @@ function reglasDeImpresion(rules: CSSRuleList): string {
   return css;
 }
 
-function esMobil() {
-  if (typeof navigator === "undefined") return false;
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+async function capturarRecibo(el: HTMLElement): Promise<Blob | null> {
+  const html2canvas = (await import("html2canvas")).default;
+  const canvas = await html2canvas(el, {
+    backgroundColor: "#ffffff",
+    scale: 4,
+    useCORS: true,
+    onclone: (clonedDoc) => {
+      // Aplicamos las mismas reglas @media print (ancho/letra del
+      // ticket térmico) a la captura, así la imagen que viaja por
+      // WhatsApp coincide con lo que sale impreso, no con la vista
+      // ancha de pantalla.
+      const css = Array.from(document.styleSheets)
+        .map((sheet) => {
+          try {
+            return reglasDeImpresion(sheet.cssRules);
+          } catch {
+            return "";
+          }
+        })
+        .join("\n");
+
+      const style = clonedDoc.createElement("style");
+      style.textContent = css;
+      clonedDoc.head.appendChild(style);
+    },
+  });
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 
-type ResultadoCompartir = "shared" | "cancelado" | "fallback";
+async function subirRecibo(blob: Blob): Promise<string | null> {
+  const supabase = createClient();
+  const path = `recibo-${Date.now()}.png`;
+  const { error } = await supabase.storage
+    .from("recibos-compartidos")
+    .upload(path, blob, { contentType: "image/png" });
+  if (error) return null;
 
-async function compartirImagen(
-  el: HTMLElement,
-  mensaje: string,
-): Promise<ResultadoCompartir> {
-  try {
-    const html2canvas = (await import("html2canvas")).default;
-    const canvas = await html2canvas(el, {
-      backgroundColor: "#ffffff",
-      scale: 4,
-      useCORS: true,
-      onclone: (clonedDoc) => {
-        // Aplicamos las mismas reglas @media print (ancho/letra del
-        // ticket térmico) a la captura, así la imagen de WhatsApp
-        // coincide con lo que sale impreso en vez de con la vista
-        // ancha de pantalla.
-        const css = Array.from(document.styleSheets)
-          .map((sheet) => {
-            try {
-              return reglasDeImpresion(sheet.cssRules);
-            } catch {
-              return "";
-            }
-          })
-          .join("\n");
-
-        const style = clonedDoc.createElement("style");
-        style.textContent = css;
-        clonedDoc.head.appendChild(style);
-      },
-    });
-    const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/png"),
-    );
-    if (!blob) return "fallback";
-
-    const file = new File([blob], "recibo.png", { type: "image/png" });
-    if (!navigator.canShare?.({ files: [file] })) return "fallback";
-
-    await navigator.share({ files: [file], text: mensaje });
-    return "shared";
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") return "cancelado";
-    return "fallback";
-  }
+  const { data } = supabase.storage.from("recibos-compartidos").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export function AccionesRecibo({
@@ -84,35 +73,34 @@ export function AccionesRecibo({
   const [enviando, setEnviando] = useState(false);
 
   async function enviarWhatsapp() {
-    // En computador, WhatsApp no aparece en el panel de compartir del
-    // sistema (macOS/Windows), así que ahí ni lo intentamos: vamos
-    // directo al link de texto. En celular sí suele aparecer, así que
-    // ahí probamos mandar la imagen del recibo.
-    if (!esMobil()) {
-      window.location.href = linkWhatsapp(telefono, mensaje);
-      return;
-    }
-
-    const el = document.getElementById(targetId);
     setEnviando(true);
 
-    // Si compartir la imagen se cuelga por lo que sea, no queremos que
-    // el botón se quede en "Preparando…" para siempre: a los 8s pasamos
-    // al link de WhatsApp con texto, que siempre funciona.
-    const resultado: ResultadoCompartir = el
-      ? await Promise.race([
-          compartirImagen(el, mensaje),
-          new Promise<ResultadoCompartir>((resolve) =>
-            setTimeout(() => resolve("fallback"), 8000),
-          ),
-        ])
-      : "fallback";
+    // wa.me solo acepta texto, nunca un archivo adjunto — así que
+    // subimos la imagen del recibo y metemos el link dentro del
+    // mensaje. WhatsApp la muestra como vista previa en el chat, y
+    // como seguimos usando wa.me, abre la conversación exacta del
+    // número guardado (a diferencia del panel de compartir del
+    // sistema, que solo deja elegir un contacto a mano).
+    const el = document.getElementById(targetId);
+    let mensajeFinal = mensaje;
+
+    if (el) {
+      const resultado = await Promise.race([
+        (async () => {
+          const blob = await capturarRecibo(el);
+          if (!blob) return null;
+          return subirRecibo(blob);
+        })(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+      ]);
+
+      if (resultado) {
+        mensajeFinal = `${mensaje}\n${resultado}`;
+      }
+    }
 
     setEnviando(false);
-
-    if (resultado === "fallback") {
-      window.location.href = linkWhatsapp(telefono, mensaje);
-    }
+    window.location.href = linkWhatsapp(telefono, mensajeFinal);
   }
 
   return (
