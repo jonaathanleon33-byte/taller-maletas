@@ -77,6 +77,16 @@ export default async function ComprobantePage({
             >
               Imprimir comprobante
             </Link>
+            <Link
+              href={`/ordenes/${orden.id}/etiqueta`}
+              className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-base font-semibold text-slate-700 active:bg-slate-50"
+            >
+              Factura en sticker
+            </Link>
+            <p className="-mt-2 text-center text-xs text-slate-500">
+              Solo cliente, maleta y servicio — para pegar en la maleta con
+              papel adhesivo.
+            </p>
           </>
         )}
       </main>

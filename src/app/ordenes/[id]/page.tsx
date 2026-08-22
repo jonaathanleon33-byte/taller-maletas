@@ -135,7 +135,7 @@ export default async function OrdenDetallePage({
           href={`/ordenes/${orden.id}/etiqueta`}
           className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-sm font-semibold text-slate-700 active:bg-slate-50"
         >
-          Imprimir etiqueta para la maleta
+          Factura en sticker
         </Link>
 
         <Link
