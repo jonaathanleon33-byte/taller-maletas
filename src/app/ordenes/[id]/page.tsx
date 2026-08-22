@@ -140,12 +140,12 @@ export default async function OrdenDetallePage({
 
         <Link
           href={`/ordenes/${orden.id}/comprobante`}
-          className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 active:bg-slate-50"
+          className="flex items-center justify-between gap-3 rounded-lg bg-blue-600 p-4 shadow-md shadow-blue-600/30 active:bg-blue-700"
         >
-          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-            Comprobante
+          <span className="text-sm font-bold uppercase tracking-wide text-white">
+            {comprobante ? "Factura" : "+ Crear factura"}
           </span>
-          <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
+          <span className="flex items-center gap-2 text-sm font-medium text-white">
             {comprobante ? (
               <>
                 {formatMoney(comprobanteTotal ?? 0)}
@@ -160,7 +160,7 @@ export default async function OrdenDetallePage({
                 </span>
               </>
             ) : (
-              "Crear →"
+              "→"
             )}
           </span>
         </Link>
