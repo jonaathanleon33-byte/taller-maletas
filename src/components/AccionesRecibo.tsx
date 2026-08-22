@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { linkWhatsapp } from "@/lib/estado";
 
 function reglasDeImpresion(rules: CSSRuleList): string {
@@ -28,9 +27,9 @@ async function capturarRecibo(el: HTMLElement): Promise<Blob | null> {
     useCORS: true,
     onclone: (clonedDoc) => {
       // Aplicamos las mismas reglas @media print (ancho/letra del
-      // ticket térmico) a la captura, así la imagen que viaja por
-      // WhatsApp coincide con lo que sale impreso, no con la vista
-      // ancha de pantalla.
+      // ticket térmico) a la captura, así la imagen que se descarga
+      // coincide con lo que sale impreso, no con la vista ancha de
+      // pantalla.
       const css = Array.from(document.styleSheets)
         .map((sheet) => {
           try {
@@ -49,15 +48,15 @@ async function capturarRecibo(el: HTMLElement): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 
-async function subirRecibo(blob: Blob): Promise<string | null> {
-  const supabase = createClient();
-  const path = `recibo-${Date.now()}.png`;
-  const { error } = await supabase.storage
-    .from("recibos-compartidos")
-    .upload(path, blob, { contentType: "image/png" });
-  if (error) return null;
-
-  return path;
+function descargarBlob(blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "recibo.png";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export function AccionesRecibo({
@@ -74,51 +73,51 @@ export function AccionesRecibo({
   async function enviarWhatsapp() {
     setEnviando(true);
 
-    // wa.me solo acepta texto, nunca un archivo adjunto — así que
-    // subimos la imagen del recibo y metemos el link dentro del
-    // mensaje. WhatsApp la muestra como vista previa en el chat, y
-    // como seguimos usando wa.me, abre la conversación exacta del
-    // número guardado (a diferencia del panel de compartir del
-    // sistema, que solo deja elegir un contacto a mano).
+    // wa.me solo acepta texto, nunca un archivo adjunto — no hay forma
+    // de que un sitio web adjunte una foto directamente a un chat
+    // específico. En vez de mandar un link (que se ve feo y a veces ni
+    // genera vista previa), descargamos la foto real del recibo para
+    // que la adjuntes vos mismo, y abrimos igual el chat exacto del
+    // número guardado.
     const el = document.getElementById(targetId);
-    let mensajeFinal = mensaje;
 
     if (el) {
-      const resultado = await Promise.race([
-        (async () => {
-          const blob = await capturarRecibo(el);
-          if (!blob) return null;
-          return subirRecibo(blob);
-        })(),
+      const blob = await Promise.race([
+        capturarRecibo(el),
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
       ]);
 
-      if (resultado) {
-        mensajeFinal = `${mensaje}\n${window.location.origin}/r/${resultado}`;
+      if (blob) {
+        descargarBlob(blob);
       }
     }
 
     setEnviando(false);
-    window.location.href = linkWhatsapp(telefono, mensajeFinal);
+    window.location.href = linkWhatsapp(telefono, mensaje);
   }
 
   return (
-    <div className="no-print flex w-full max-w-[320px] gap-2">
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="flex-1 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white active:bg-slate-700"
-      >
-        Imprimir
-      </button>
-      <button
-        type="button"
-        onClick={enviarWhatsapp}
-        disabled={enviando}
-        className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700 disabled:opacity-60"
-      >
-        {enviando ? "Preparando…" : "WhatsApp"}
-      </button>
+    <div className="no-print flex w-full max-w-[320px] flex-col gap-2">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="flex-1 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white active:bg-slate-700"
+        >
+          Imprimir
+        </button>
+        <button
+          type="button"
+          onClick={enviarWhatsapp}
+          disabled={enviando}
+          className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700 disabled:opacity-60"
+        >
+          {enviando ? "Preparando…" : "WhatsApp"}
+        </button>
+      </div>
+      <p className="text-center text-xs text-slate-500">
+        Se descarga la foto del recibo y se abre el chat — adjúntala ahí.
+      </p>
     </div>
   );
 }
