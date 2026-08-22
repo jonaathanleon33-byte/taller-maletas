@@ -58,7 +58,7 @@ export default async function ComprobantePage({
         {!comprobante ? (
           <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-slate-300 py-16 text-center">
             <p className="text-slate-500">
-              Esta orden todavía no tiene un comprobante.
+              Esta orden todavía no tiene una factura.
             </p>
             <CrearComprobanteButton ordenId={orden.id} />
           </div>
