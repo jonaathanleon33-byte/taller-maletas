@@ -1,11 +1,6 @@
 export type Tamano = "pequeña" | "mediana" | "grande";
 export type TipoMaleta = "fibra" | "lona" | "morral" | "maletin" | "estuche";
-export type Estado =
-  | "recibida"
-  | "en_reparacion"
-  | "esperando_repuesto"
-  | "lista"
-  | "entregada";
+export type Estado = "recibida" | "lista" | "entregada";
 
 export type Orden = {
   id: string;

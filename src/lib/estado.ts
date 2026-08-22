@@ -1,17 +1,9 @@
 import type { Estado, Orden, Tamano, TipoMaleta } from "@/types/database";
 
-export const ESTADOS: Estado[] = [
-  "recibida",
-  "en_reparacion",
-  "esperando_repuesto",
-  "lista",
-  "entregada",
-];
+export const ESTADOS: Estado[] = ["recibida", "lista", "entregada"];
 
 export const ESTADO_LABELS: Record<Estado, string> = {
   recibida: "Recibida",
-  en_reparacion: "En reparación",
-  esperando_repuesto: "Esperando repuesto",
   lista: "Lista",
   entregada: "Entregada",
 };
@@ -74,9 +66,7 @@ const COLOR_CLASSES: Record<EstadoColor, { bar: string; badge: string; dot: stri
 };
 
 const ESTADO_COLOR: Record<Estado, EstadoColor> = {
-  recibida: "gris",
-  en_reparacion: "amarillo",
-  esperando_repuesto: "azul",
+  recibida: "amarillo",
   lista: "verde",
   entregada: "gris",
 };
@@ -101,12 +91,8 @@ export function mensajeWhatsapp(orden: Pick<Orden, "cliente_nombre" | "numero_re
   switch (orden.estado) {
     case "recibida":
       return `Hola ${nombre}, te confirmamos que recibimos tu maleta ${maleta} (recibo #${orden.numero_recibo}) en el taller. Te avisamos apenas tengamos novedades.`;
-    case "en_reparacion":
-      return `Hola ${nombre}, te contamos que tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está en reparación. Te avisamos cuando esté lista.`;
-    case "esperando_repuesto":
-      return `Hola ${nombre}, tu maleta ${maleta} (recibo #${orden.numero_recibo}) está a la espera de un repuesto. Apenas llegue seguimos con la reparación y te avisamos.`;
     case "lista":
-      return `Hola ${nombre}, ¡buenas noticias! Tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar. Te esperamos en el taller.`;
+      return `Hola ${nombre}, ¡buenas noticias! Tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar. Te esperamos en nuestro centro técnico.`;
     case "entregada":
       return `Hola ${nombre}, gracias por retirar tu maleta ${maleta} (recibo #${orden.numero_recibo}). ¡Cualquier consulta estamos a disposición!`;
     default:
