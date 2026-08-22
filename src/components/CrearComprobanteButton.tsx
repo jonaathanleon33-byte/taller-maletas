@@ -11,7 +11,7 @@ export function CrearComprobanteButton({ ordenId }: { ordenId: string }) {
       type="button"
       disabled={pending}
       onClick={() => startTransition(() => crearComprobante(ordenId))}
-      className="rounded-lg bg-slate-900 py-3 text-center text-base font-semibold text-white active:bg-slate-700 disabled:opacity-60"
+      className="rounded-lg bg-blue-600 py-3 text-center text-base font-semibold text-white active:bg-blue-700 disabled:opacity-60"
     >
       {pending ? "Creando…" : "Crear comprobante"}
     </button>

@@ -81,6 +81,7 @@ export async function crearOrden(
   }
 
   await exportarOrdenASheets(orden);
+  await supabase.from("comprobantes").insert({ orden_id: orden.id });
 
   for (const [index, file] of fotos.entries()) {
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
