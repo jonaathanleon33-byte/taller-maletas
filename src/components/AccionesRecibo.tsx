@@ -57,8 +57,7 @@ async function subirRecibo(blob: Blob): Promise<string | null> {
     .upload(path, blob, { contentType: "image/png" });
   if (error) return null;
 
-  const { data } = supabase.storage.from("recibos-compartidos").getPublicUrl(path);
-  return data.publicUrl;
+  return path;
 }
 
 export function AccionesRecibo({
@@ -95,7 +94,7 @@ export function AccionesRecibo({
       ]);
 
       if (resultado) {
-        mensajeFinal = `${mensaje}\n${resultado}`;
+        mensajeFinal = `${mensaje}\n${window.location.origin}/r/${resultado}`;
       }
     }
 
