@@ -68,17 +68,13 @@ export function AccionesRecibo({
   telefono: string;
   mensaje: string;
 }) {
-  const [enviando, setEnviando] = useState(false);
+  const [preparando, setPreparando] = useState(false);
+  const [listo, setListo] = useState<{ blob: Blob; preview: string } | null>(
+    null,
+  );
 
-  async function enviarWhatsapp() {
-    setEnviando(true);
-
-    // wa.me solo acepta texto, nunca un archivo adjunto — no hay forma
-    // de que un sitio web adjunte una foto directamente a un chat
-    // específico. En vez de mandar un link (que se ve feo y a veces ni
-    // genera vista previa), descargamos la foto real del recibo para
-    // que la adjuntes vos mismo, y abrimos igual el chat exacto del
-    // número guardado.
+  async function prepararRecibo() {
+    setPreparando(true);
     const el = document.getElementById(targetId);
     let blob: Blob | null = null;
 
@@ -94,22 +90,48 @@ export function AccionesRecibo({
       }
     }
 
-    setEnviando(false);
+    setPreparando(false);
 
     if (!blob) {
       alert(
-        "No se pudo generar la foto del recibo. Se abrirá WhatsApp solo con el mensaje — probá de nuevo o adjuntá el recibo impreso a mano.",
+        "No se pudo generar la foto del recibo. Probá de nuevo.",
       );
-      window.location.href = linkWhatsapp(telefono, mensaje);
       return;
     }
 
-    descargarBlob(blob);
-    // Le damos tiempo al navegador de completar la descarga antes de
-    // navegar a WhatsApp, si no a veces la descarga se corta a medias.
-    setTimeout(() => {
+    setListo({ blob, preview: URL.createObjectURL(blob) });
+  }
+
+  // Esto se llama directo desde el segundo clic del usuario (no después
+  // de un await), porque tanto la descarga como el share nativo de
+  // iOS/Android sólo funcionan si ocurren en el mismo toque — si pasan
+  // después de esperar la captura de la imagen, Safari los bloquea en
+  // silencio y no pasa nada.
+  function enviarAhora() {
+    if (!listo) return;
+    const { blob } = listo;
+    const archivo = new File([blob], "recibo.png", { type: "image/png" });
+
+    if (
+      typeof navigator.share === "function" &&
+      typeof navigator.canShare === "function" &&
+      navigator.canShare({ files: [archivo] })
+    ) {
+      navigator.share({ files: [archivo], text: mensaje }).catch((err) => {
+        if ((err as Error)?.name !== "AbortError") {
+          console.error("No se pudo compartir el recibo:", err);
+        }
+      });
+    } else {
+      // Sin soporte para compartir archivos (la mayoría de navegadores
+      // de escritorio): descargamos la foto y abrimos el chat exacto
+      // para que la adjuntes a mano.
+      descargarBlob(blob);
       window.location.href = linkWhatsapp(telefono, mensaje);
-    }, 600);
+    }
+
+    URL.revokeObjectURL(listo.preview);
+    setListo(null);
   }
 
   return (
@@ -122,18 +144,42 @@ export function AccionesRecibo({
         >
           Imprimir
         </button>
-        <button
-          type="button"
-          onClick={enviarWhatsapp}
-          disabled={enviando}
-          className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700 disabled:opacity-60"
-        >
-          {enviando ? "Preparando…" : "WhatsApp"}
-        </button>
+        {listo ? (
+          <button
+            type="button"
+            onClick={enviarAhora}
+            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700"
+          >
+            Enviar por WhatsApp
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={prepararRecibo}
+            disabled={preparando}
+            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700 disabled:opacity-60"
+          >
+            {preparando ? "Preparando…" : "WhatsApp"}
+          </button>
+        )}
       </div>
-      <p className="text-center text-xs text-slate-500">
-        Se descarga la foto del recibo y se abre el chat — adjúntala ahí.
-      </p>
+      {listo ? (
+        <div className="flex items-center justify-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={listo.preview}
+            alt="Foto del recibo lista para enviar"
+            className="h-12 w-12 rounded border border-slate-200 object-cover"
+          />
+          <p className="text-center text-xs text-slate-500">
+            Foto lista — tocá &quot;Enviar por WhatsApp&quot;.
+          </p>
+        </div>
+      ) : (
+        <p className="text-center text-xs text-slate-500">
+          Se prepara la foto del recibo y después se envía por WhatsApp.
+        </p>
+      )}
     </div>
   );
 }
