@@ -8,6 +8,7 @@ import {
 import { ESTADOS, TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
 import { EstadoSelect } from "@/components/EstadoSelect";
 import { comprimirImagen } from "@/lib/comprimir-imagen";
+import type { Cliente } from "@/lib/clientes";
 
 const initialState: CrearOrdenState = null;
 
@@ -23,9 +24,11 @@ const labelClass = "mb-1 block text-sm font-medium text-slate-700";
 
 export function NuevaOrdenForm({
   tecnicos,
+  clientes,
   prefill,
 }: {
   tecnicos: string[];
+  clientes: Cliente[];
   prefill?: {
     numero_recibo?: string;
     cliente_nombre?: string;
@@ -39,6 +42,24 @@ export function NuevaOrdenForm({
   const [previews, setPreviews] = useState<string[]>([]);
   const [comprimiendo, setComprimiendo] = useState(false);
   const [fechaRecibido] = useState(ahoraLocal);
+  const [clienteNombre, setClienteNombre] = useState(
+    prefill?.cliente_nombre ?? "",
+  );
+  const [clienteTelefono, setClienteTelefono] = useState(
+    prefill?.cliente_telefono ?? "",
+  );
+
+  function handleNombreChange(value: string) {
+    setClienteNombre(value);
+    const match = clientes.find((c) => c.nombre === value);
+    if (match) setClienteTelefono(match.telefono);
+  }
+
+  function handleTelefonoChange(value: string) {
+    setClienteTelefono(value);
+    const match = clientes.find((c) => c.telefono === value);
+    if (match) setClienteNombre(match.nombre);
+  }
 
   useEffect(() => {
     return () => previews.forEach((url) => URL.revokeObjectURL(url));
@@ -102,11 +123,20 @@ export function NuevaOrdenForm({
           <input
             id="cliente_nombre"
             name="cliente_nombre"
+            list="clientes-nombre-list"
             required
             autoComplete="do-not-autofill"
-            defaultValue={prefill?.cliente_nombre ?? ""}
+            value={clienteNombre}
+            onChange={(e) => handleNombreChange(e.target.value)}
             className={inputClass}
           />
+          {clientes.length > 0 ? (
+            <datalist id="clientes-nombre-list">
+              {clientes.map((c) => (
+                <option key={c.telefono} value={c.nombre} />
+              ))}
+            </datalist>
+          ) : null}
         </div>
 
         <div>
@@ -117,12 +147,21 @@ export function NuevaOrdenForm({
             id="cliente_telefono"
             name="cliente_telefono"
             type="tel"
+            list="clientes-telefono-list"
             required
             autoComplete="do-not-autofill"
-            defaultValue={prefill?.cliente_telefono ?? ""}
+            value={clienteTelefono}
+            onChange={(e) => handleTelefonoChange(e.target.value)}
             className={inputClass}
             placeholder="Ej: 3001234567"
           />
+          {clientes.length > 0 ? (
+            <datalist id="clientes-telefono-list">
+              {clientes.map((c) => (
+                <option key={c.telefono} value={c.telefono} />
+              ))}
+            </datalist>
+          ) : null}
         </div>
       </section>
 

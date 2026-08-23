@@ -80,20 +80,36 @@ export function AccionesRecibo({
     // que la adjuntes vos mismo, y abrimos igual el chat exacto del
     // número guardado.
     const el = document.getElementById(targetId);
+    let blob: Blob | null = null;
 
     if (el) {
-      const blob = await Promise.race([
-        capturarRecibo(el),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
-      ]);
-
-      if (blob) {
-        descargarBlob(blob);
+      try {
+        blob = await Promise.race([
+          capturarRecibo(el),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 20000)),
+        ]);
+      } catch (err) {
+        console.error("No se pudo generar la imagen del recibo:", err);
+        blob = null;
       }
     }
 
     setEnviando(false);
-    window.location.href = linkWhatsapp(telefono, mensaje);
+
+    if (!blob) {
+      alert(
+        "No se pudo generar la foto del recibo. Se abrirá WhatsApp solo con el mensaje — probá de nuevo o adjuntá el recibo impreso a mano.",
+      );
+      window.location.href = linkWhatsapp(telefono, mensaje);
+      return;
+    }
+
+    descargarBlob(blob);
+    // Le damos tiempo al navegador de completar la descarga antes de
+    // navegar a WhatsApp, si no a veces la descarga se corta a medias.
+    setTimeout(() => {
+      window.location.href = linkWhatsapp(telefono, mensaje);
+    }, 600);
   }
 
   return (
