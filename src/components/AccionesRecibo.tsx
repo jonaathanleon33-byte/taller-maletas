@@ -103,32 +103,18 @@ export function AccionesRecibo({
   }
 
   // Esto se llama directo desde el segundo clic del usuario (no después
-  // de un await), porque tanto la descarga como el share nativo de
-  // iOS/Android sólo funcionan si ocurren en el mismo toque — si pasan
-  // después de esperar la captura de la imagen, Safari los bloquea en
-  // silencio y no pasa nada.
+  // de un await), porque la descarga sólo funciona en iOS/Safari si
+  // ocurre en el mismo toque — si pasa después de esperar la captura
+  // de la imagen, Safari la bloquea en silencio y no pasa nada.
+  //
+  // Priorizamos abrir el chat exacto del cliente (wa.me con su
+  // teléfono) sobre adjuntar la foto automáticamente: wa.me no admite
+  // archivos, así que la foto se descarga aparte para adjuntarla a
+  // mano dentro del chat que ya quedó abierto.
   function enviarAhora() {
     if (!listo) return;
-    const { blob } = listo;
-    const archivo = new File([blob], "recibo.png", { type: "image/png" });
-
-    if (
-      typeof navigator.share === "function" &&
-      typeof navigator.canShare === "function" &&
-      navigator.canShare({ files: [archivo] })
-    ) {
-      navigator.share({ files: [archivo], text: mensaje }).catch((err) => {
-        if ((err as Error)?.name !== "AbortError") {
-          console.error("No se pudo compartir el recibo:", err);
-        }
-      });
-    } else {
-      // Sin soporte para compartir archivos (la mayoría de navegadores
-      // de escritorio): descargamos la foto y abrimos el chat exacto
-      // para que la adjuntes a mano.
-      descargarBlob(blob);
-      window.location.href = linkWhatsapp(telefono, mensaje);
-    }
+    descargarBlob(listo.blob);
+    window.location.href = linkWhatsapp(telefono, mensaje);
 
     URL.revokeObjectURL(listo.preview);
     setListo(null);
@@ -172,12 +158,13 @@ export function AccionesRecibo({
             className="h-12 w-12 rounded border border-slate-200 object-cover"
           />
           <p className="text-center text-xs text-slate-500">
-            Foto lista — tocá &quot;Enviar por WhatsApp&quot;.
+            Foto lista — al enviar se descarga y se abre el chat del
+            cliente para que la adjuntes ahí.
           </p>
         </div>
       ) : (
         <p className="text-center text-xs text-slate-500">
-          Se prepara la foto del recibo y después se envía por WhatsApp.
+          Se prepara la foto del recibo antes de abrir el chat del cliente.
         </p>
       )}
     </div>
