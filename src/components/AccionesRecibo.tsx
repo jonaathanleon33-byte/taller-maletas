@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { linkWhatsapp } from "@/lib/estado";
+import { createClient } from "@/lib/supabase/client";
 
 function reglasDeImpresion(rules: CSSRuleList): string {
   let css = "";
@@ -48,15 +49,19 @@ async function capturarRecibo(el: HTMLElement): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 
-function descargarBlob(blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "recibo.png";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+async function subirRecibo(blob: Blob): Promise<string | null> {
+  const supabase = createClient();
+  const archivo = `recibo-${Date.now()}.png`;
+  const { error } = await supabase.storage
+    .from("recibos-compartidos")
+    .upload(archivo, blob, { contentType: "image/png" });
+
+  if (error) {
+    console.error("No se pudo subir la foto del recibo:", error);
+    return null;
+  }
+
+  return `${window.location.origin}/r/${archivo}`;
 }
 
 export function AccionesRecibo({
@@ -68,56 +73,42 @@ export function AccionesRecibo({
   telefono: string;
   mensaje: string;
 }) {
-  const [preparando, setPreparando] = useState(false);
-  const [listo, setListo] = useState<{ blob: Blob; preview: string } | null>(
-    null,
-  );
+  const [enviando, setEnviando] = useState(false);
 
-  async function prepararRecibo() {
-    setPreparando(true);
+  // La navegación con window.location.href no necesita un toque
+  // "fresco" como sí lo necesitan la descarga de archivos o
+  // navigator.share en iOS/Safari, así que acá podemos esperar la
+  // captura y la subida de la imagen sin problema antes de abrir
+  // WhatsApp.
+  async function enviarWhatsapp() {
+    setEnviando(true);
+
     const el = document.getElementById(targetId);
-    let blob: Blob | null = null;
+    let link: string | null = null;
 
     if (el) {
       try {
-        blob = await Promise.race([
+        const blob = await Promise.race([
           capturarRecibo(el),
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 20000)),
         ]);
+        if (blob) {
+          link = await subirRecibo(blob);
+        }
       } catch (err) {
-        console.error("No se pudo generar la imagen del recibo:", err);
-        blob = null;
+        console.error("No se pudo preparar la foto del recibo:", err);
       }
     }
 
-    setPreparando(false);
+    setEnviando(false);
 
-    if (!blob) {
+    const mensajeFinal = link ? `${mensaje}\n\n${link}` : mensaje;
+    if (!link) {
       alert(
-        "No se pudo generar la foto del recibo. Probá de nuevo.",
+        "No se pudo generar la foto del recibo. Se abrirá WhatsApp solo con el mensaje.",
       );
-      return;
     }
-
-    setListo({ blob, preview: URL.createObjectURL(blob) });
-  }
-
-  // Esto se llama directo desde el segundo clic del usuario (no después
-  // de un await), porque la descarga sólo funciona en iOS/Safari si
-  // ocurre en el mismo toque — si pasa después de esperar la captura
-  // de la imagen, Safari la bloquea en silencio y no pasa nada.
-  //
-  // Priorizamos abrir el chat exacto del cliente (wa.me con su
-  // teléfono) sobre adjuntar la foto automáticamente: wa.me no admite
-  // archivos, así que la foto se descarga aparte para adjuntarla a
-  // mano dentro del chat que ya quedó abierto.
-  function enviarAhora() {
-    if (!listo) return;
-    descargarBlob(listo.blob);
-    window.location.href = linkWhatsapp(telefono, mensaje);
-
-    URL.revokeObjectURL(listo.preview);
-    setListo(null);
+    window.location.href = linkWhatsapp(telefono, mensajeFinal);
   }
 
   return (
@@ -130,43 +121,19 @@ export function AccionesRecibo({
         >
           Imprimir
         </button>
-        {listo ? (
-          <button
-            type="button"
-            onClick={enviarAhora}
-            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700"
-          >
-            Enviar por WhatsApp
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={prepararRecibo}
-            disabled={preparando}
-            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700 disabled:opacity-60"
-          >
-            {preparando ? "Preparando…" : "WhatsApp"}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={enviarWhatsapp}
+          disabled={enviando}
+          className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-emerald-700 disabled:opacity-60"
+        >
+          {enviando ? "Preparando…" : "WhatsApp"}
+        </button>
       </div>
-      {listo ? (
-        <div className="flex items-center justify-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={listo.preview}
-            alt="Foto del recibo lista para enviar"
-            className="h-12 w-12 rounded border border-slate-200 object-cover"
-          />
-          <p className="text-center text-xs text-slate-500">
-            Foto lista — al enviar se descarga y se abre el chat del
-            cliente para que la adjuntes ahí.
-          </p>
-        </div>
-      ) : (
-        <p className="text-center text-xs text-slate-500">
-          Se prepara la foto del recibo antes de abrir el chat del cliente.
-        </p>
-      )}
+      <p className="text-center text-xs text-slate-500">
+        Se abre el chat del cliente con el mensaje y el link a la foto
+        del recibo.
+      </p>
     </div>
   );
 }
