@@ -57,7 +57,7 @@ export function ReciboImprimible({
   return (
     <div
       id={id}
-      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[40mm] print:text-[7px] print:leading-snug print:font-bold"
+      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[54mm] print:text-[9px] print:leading-snug print:font-bold"
     >
       <div className="flex flex-col items-center text-center">
         {negocio.logo_url ? (
@@ -71,7 +71,7 @@ export function ReciboImprimible({
         ) : (
           <LogoTaller className="h-14 w-14 print:h-10 print:w-10" />
         )}
-        <p className="mt-1 text-sm font-bold uppercase tracking-wide">
+        <p className="mt-1 text-sm font-bold uppercase tracking-wide print:text-[11px]">
           {negocio.nombre}
         </p>
         <p>{negocio.nit}</p>
@@ -160,7 +160,7 @@ export function ReciboImprimible({
                 {m.items.map((item) => (
                   <div key={item.id}>
                     <p>{item.descripcion}</p>
-                    <div className="flex justify-between text-xs">
+                    <div className="flex justify-between text-xs print:text-[9px]">
                       <span>
                         {formatMoney(item.precio_unitario)} x{item.cantidad}{" "}
                         {item.descuento_pct > 0 ? `${item.descuento_pct}%` : "0%"}
@@ -174,7 +174,7 @@ export function ReciboImprimible({
           )}
         </div>
       ) : (
-        <p className="text-center text-xs">Sin ítems</p>
+        <p className="text-center text-xs print:text-[9px]">Sin ítems</p>
       )}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
@@ -230,7 +230,7 @@ export function ReciboImprimible({
         </div>
       )}
 
-      <p className="mt-4 text-center text-xs">
+      <p className="mt-4 text-center text-xs print:text-[8px]">
         {pieLineas.map((linea, i) => (
           <span key={i}>
             {linea}
