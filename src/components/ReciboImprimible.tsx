@@ -57,7 +57,7 @@ export function ReciboImprimible({
   return (
     <div
       id={id}
-      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[54mm] print:text-[9px] print:leading-snug"
+      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[48mm] print:text-[9px] print:leading-snug print:font-bold"
     >
       <div className="flex flex-col items-center text-center">
         {negocio.logo_url ? (
