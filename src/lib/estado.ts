@@ -15,6 +15,9 @@ export const TECNICOS: string[] = [
   "Mike",
   "Viviana",
   "Roimer",
+  "Patricia",
+  "Jonathan",
+  "Michel",
 ];
 
 export const ESTADO_LABELS: Record<Estado, string> = {
