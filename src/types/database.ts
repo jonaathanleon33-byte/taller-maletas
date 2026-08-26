@@ -50,7 +50,6 @@ export type MetodoPago =
   | "efectivo"
   | "tarjeta"
   | "transferencia"
-  | "otro"
   | "pago_al_recoger";
 
 export type Servicio = {
