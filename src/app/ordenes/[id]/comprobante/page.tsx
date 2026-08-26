@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { CrearComprobanteButton } from "@/components/CrearComprobanteButton";
 import { ComprobanteEditor } from "@/components/ComprobanteEditor";
 import { createClient } from "@/lib/supabase/server";
-import { obtenerTecnicos } from "@/lib/google-sheets";
+import { TECNICOS } from "@/lib/estado";
 
 export const dynamic = "force-dynamic";
 
@@ -26,16 +26,14 @@ export default async function ComprobantePage({
     notFound();
   }
 
-  const [{ data: comprobante }, { data: servicios }, tecnicos] =
-    await Promise.all([
-      supabase.from("comprobantes").select("*").eq("orden_id", id).maybeSingle(),
-      supabase
-        .from("servicios")
-        .select("*")
-        .eq("activo", true)
-        .order("nombre", { ascending: true }),
-      obtenerTecnicos(),
-    ]);
+  const [{ data: comprobante }, { data: servicios }] = await Promise.all([
+    supabase.from("comprobantes").select("*").eq("orden_id", id).maybeSingle(),
+    supabase
+      .from("servicios")
+      .select("*")
+      .eq("activo", true)
+      .order("nombre", { ascending: true }),
+  ]);
 
   const { data: items } = comprobante
     ? await supabase
@@ -69,7 +67,7 @@ export default async function ComprobantePage({
               comprobante={comprobante}
               items={items ?? []}
               servicios={servicios ?? []}
-              tecnicos={tecnicos}
+              tecnicos={TECNICOS}
             />
             <Link
               href={`/ordenes/${orden.id}/comprobante/imprimir`}

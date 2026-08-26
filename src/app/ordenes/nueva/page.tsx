@@ -1,6 +1,6 @@
 import { AppHeader } from "@/components/AppHeader";
 import { NuevaOrdenForm } from "@/components/NuevaOrdenForm";
-import { obtenerTecnicos } from "@/lib/google-sheets";
+import { TECNICOS } from "@/lib/estado";
 import { obtenerClientesConocidos } from "@/lib/clientes";
 
 export const dynamic = "force-dynamic";
@@ -10,10 +10,7 @@ export default async function NuevaOrdenPage({
 }: {
   searchParams: Promise<{ recibo?: string; cliente?: string; telefono?: string }>;
 }) {
-  const [tecnicos, clientes] = await Promise.all([
-    obtenerTecnicos(),
-    obtenerClientesConocidos(),
-  ]);
+  const clientes = await obtenerClientesConocidos();
   const { recibo, cliente, telefono } = await searchParams;
 
   return (
@@ -21,7 +18,7 @@ export default async function NuevaOrdenPage({
       <AppHeader title="Nueva orden" backHref="/" />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
         <NuevaOrdenForm
-          tecnicos={tecnicos}
+          tecnicos={TECNICOS}
           clientes={clientes}
           prefill={{ numero_recibo: recibo, cliente_nombre: cliente, cliente_telefono: telefono }}
         />

@@ -64,21 +64,19 @@ export function ComprobanteConfigForm({
           <label className={labelClass} htmlFor="atendido_por">
             Atendido por
           </label>
-          <input
+          <select
             id="atendido_por"
             name="atendido_por"
-            list="tecnicos-list-comprobante"
-            autoComplete="do-not-autofill"
             defaultValue={comprobante.atendido_por ?? ""}
             className={inputClass}
-          />
-          {tecnicos.length > 0 ? (
-            <datalist id="tecnicos-list-comprobante">
-              {tecnicos.map((tecnico) => (
-                <option key={tecnico} value={tecnico} />
-              ))}
-            </datalist>
-          ) : null}
+          >
+            <option value="">Sin asignar</option>
+            {tecnicos.map((tecnico) => (
+              <option key={tecnico} value={tecnico}>
+                {tecnico}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

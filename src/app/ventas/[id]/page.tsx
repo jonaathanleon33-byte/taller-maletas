@@ -4,8 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { InfoRow } from "@/components/InfoRow";
 import { ComprobanteEditor } from "@/components/ComprobanteEditor";
 import { createClient } from "@/lib/supabase/server";
-import { obtenerTecnicos } from "@/lib/google-sheets";
-import { linkWhatsapp } from "@/lib/estado";
+import { linkWhatsapp, TECNICOS } from "@/lib/estado";
 import { calcularTotales, formatMoney } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +28,7 @@ export default async function VentaPage({
     notFound();
   }
 
-  const [{ data: items }, { data: servicios }, tecnicos] = await Promise.all([
+  const [{ data: items }, { data: servicios }] = await Promise.all([
     supabase
       .from("comprobante_items")
       .select("*")
@@ -40,7 +39,6 @@ export default async function VentaPage({
       .select("*")
       .eq("activo", true)
       .order("nombre", { ascending: true }),
-    obtenerTecnicos(),
   ]);
 
   const path = `/ventas/${id}`;
@@ -77,7 +75,7 @@ export default async function VentaPage({
           comprobante={comprobante}
           items={items ?? []}
           servicios={servicios ?? []}
-          tecnicos={tecnicos}
+          tecnicos={TECNICOS}
         />
 
         <a

@@ -26,7 +26,7 @@ export function ItemRow({
     const valor = Number(precio);
     if (Number.isNaN(valor) || valor < 0) return;
     startTransition(async () => {
-      await actualizarPrecioItem(path, item.id, valor);
+      await actualizarPrecioItem(path, item.comprobante_id, item.id, valor);
       setEditando(false);
     });
   }
@@ -107,7 +107,11 @@ export function ItemRow({
         <span className="text-sm font-medium text-slate-900">
           {formatMoney(calcularSubtotalItem(item))}
         </span>
-        <EliminarItemButton path={path} itemId={item.id} />
+        <EliminarItemButton
+          path={path}
+          comprobanteId={item.comprobante_id}
+          itemId={item.id}
+        />
       </div>
     </li>
   );

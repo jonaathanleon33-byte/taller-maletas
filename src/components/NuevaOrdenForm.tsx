@@ -351,21 +351,19 @@ export function NuevaOrdenForm({
           <label className={labelClass} htmlFor="tecnico_asignado">
             Técnico asignado
           </label>
-          <input
+          <select
             id="tecnico_asignado"
             name="tecnico_asignado"
-            list="tecnicos-list"
-            autoComplete="do-not-autofill"
+            defaultValue=""
             className={inputClass}
-            placeholder="Elegir o escribir un nombre"
-          />
-          {tecnicos.length > 0 ? (
-            <datalist id="tecnicos-list">
-              {tecnicos.map((tecnico) => (
-                <option key={tecnico} value={tecnico} />
-              ))}
-            </datalist>
-          ) : null}
+          >
+            <option value="">Sin asignar</option>
+            {tecnicos.map((tecnico) => (
+              <option key={tecnico} value={tecnico}>
+                {tecnico}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

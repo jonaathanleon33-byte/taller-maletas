@@ -2,7 +2,46 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { actualizarPrecioEnSheets } from "@/lib/google-sheets";
+import { calcularTotales } from "@/lib/money";
 import type { MetodoPago } from "@/types/database";
+
+// Después de cualquier cambio en los ítems o en descuentos/impuestos
+// del comprobante, si está asociado a una orden (no una venta
+// directa), reflejamos el precio actualizado en la fila de esa orden
+// en Google Sheets.
+async function sincronizarPrecioSheets(comprobanteId: string) {
+  const supabase = await createClient();
+  const { data: comprobante } = await supabase
+    .from("comprobantes")
+    .select("orden_id, descuento_global, impuestos")
+    .eq("id", comprobanteId)
+    .maybeSingle();
+
+  if (!comprobante?.orden_id) return;
+
+  const [{ data: orden }, { data: items }] = await Promise.all([
+    supabase
+      .from("ordenes")
+      .select("numero_recibo")
+      .eq("id", comprobante.orden_id)
+      .maybeSingle(),
+    supabase
+      .from("comprobante_items")
+      .select("precio_unitario, cantidad, descuento_pct")
+      .eq("comprobante_id", comprobanteId),
+  ]);
+
+  if (!orden) return;
+
+  const { total } = calcularTotales(
+    items ?? [],
+    comprobante.descuento_global,
+    comprobante.impuestos,
+  );
+
+  await actualizarPrecioEnSheets(orden.numero_recibo, total);
+}
 
 export type AgregarItemState = { error: string } | null;
 
@@ -46,17 +85,24 @@ export async function agregarItem(
   }
 
   revalidatePath(path);
+  await sincronizarPrecioSheets(comprobanteId);
   return null;
 }
 
-export async function eliminarItem(path: string, itemId: string) {
+export async function eliminarItem(
+  path: string,
+  comprobanteId: string,
+  itemId: string,
+) {
   const supabase = await createClient();
   await supabase.from("comprobante_items").delete().eq("id", itemId);
   revalidatePath(path);
+  await sincronizarPrecioSheets(comprobanteId);
 }
 
 export async function actualizarPrecioItem(
   path: string,
+  comprobanteId: string,
   itemId: string,
   precioUnitario: number,
 ) {
@@ -67,6 +113,7 @@ export async function actualizarPrecioItem(
     .update({ precio_unitario: precioUnitario })
     .eq("id", itemId);
   revalidatePath(path);
+  await sincronizarPrecioSheets(comprobanteId);
 }
 
 export type ActualizarComprobanteState = { error: string } | null;
@@ -107,5 +154,6 @@ export async function actualizarComprobante(
   }
 
   revalidatePath(path);
+  await sincronizarPrecioSheets(comprobanteId);
   return null;
 }

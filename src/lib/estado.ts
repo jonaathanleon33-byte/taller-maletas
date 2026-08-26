@@ -2,6 +2,21 @@ import type { Estado, Orden, Tamano, TipoMaleta } from "@/types/database";
 
 export const ESTADOS: Estado[] = ["recibida", "lista", "entregada"];
 
+// Lista fija de técnicos/encargados: no se saca de ninguna fuente
+// editable (antes venía de los nombres de las pestañas del Google
+// Sheet), para que nadie la pueda cambiar sin tocar el código.
+export const TECNICOS: string[] = [
+  "Tatiana",
+  "Laura",
+  "Ana Maria",
+  "Valentina",
+  "Juan",
+  "Juan Esteban",
+  "Mike",
+  "Viviana",
+  "Roimer",
+];
+
 export const ESTADO_LABELS: Record<Estado, string> = {
   recibida: "Recibida",
   lista: "Lista",

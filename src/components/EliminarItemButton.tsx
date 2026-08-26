@@ -5,9 +5,11 @@ import { eliminarItem } from "@/lib/comprobante-actions";
 
 export function EliminarItemButton({
   path,
+  comprobanteId,
   itemId,
 }: {
   path: string;
+  comprobanteId: string;
   itemId: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -16,7 +18,9 @@ export function EliminarItemButton({
     <button
       type="button"
       disabled={pending}
-      onClick={() => startTransition(() => eliminarItem(path, itemId))}
+      onClick={() =>
+        startTransition(() => eliminarItem(path, comprobanteId, itemId))
+      }
       aria-label="Eliminar ítem"
       className="shrink-0 text-slate-400 active:text-red-600 disabled:opacity-60"
     >
