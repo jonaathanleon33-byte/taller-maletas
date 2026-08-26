@@ -67,7 +67,7 @@ export default async function ImprimirComprobantePage({
       }
 
       return {
-        info: `${o.marca} ${o.color} · ${TAMANO_LABELS[o.tamano]} · ${TIPO_LABELS[o.tipo]}`,
+        info: `${TIPO_LABELS[o.tipo]} · ${o.color} · ${TAMANO_LABELS[o.tamano]} · ${o.marca}`,
         comprobante: comp as Comprobante | null,
         items,
       };
