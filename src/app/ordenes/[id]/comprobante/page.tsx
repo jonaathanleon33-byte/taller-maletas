@@ -71,7 +71,7 @@ export default async function ComprobantePage({
             />
             <Link
               href={`/ordenes/${orden.id}/comprobante/imprimir`}
-              className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-base font-semibold text-slate-700 active:bg-slate-50"
+              className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-center text-base font-semibold text-white shadow-md shadow-slate-900/20 active:bg-slate-700"
             >
               Imprimir comprobante
             </Link>
