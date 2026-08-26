@@ -46,6 +46,8 @@ export function ReciboImprimible({
   const totalesPorMaleta = maletas.map((m) => totalesDe(m.items, m.comprobante));
   const subtotal = totalesPorMaleta.reduce((acc, t) => acc + t.subtotal, 0);
   const total = totalesPorMaleta.reduce((acc, t) => acc + t.total, 0);
+  const abono = maletas.reduce((acc, m) => acc + (m.comprobante?.abono ?? 0), 0);
+  const saldoPendiente = total - abono;
   const cantidadProductos = maletas.reduce(
     (acc, m) => acc + m.items.reduce((a, item) => a + item.cantidad, 0),
     0,
@@ -194,6 +196,12 @@ export function ReciboImprimible({
         <span>Total:</span>
         <span>{formatMoney(total)}</span>
       </div>
+      {abono > 0 ? (
+        <div className="flex justify-between">
+          <span>Abono:</span>
+          <span>-{formatMoney(abono)}</span>
+        </div>
+      ) : null}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 
@@ -203,20 +211,24 @@ export function ReciboImprimible({
 
       {multiples ? (
         <div className="flex flex-col gap-1">
-          {maletas.map((m, i) =>
-            m.comprobante ? (
+          {maletas.map((m, i) => {
+            const abonoMaleta = m.comprobante?.abono ?? 0;
+            const saldoMaleta = totalesPorMaleta[i].total - abonoMaleta;
+            return m.comprobante ? (
               <div key={i} className="flex justify-between">
                 <span>
                   Maleta {i + 1}: {m.comprobante.pagado ? "PAGADO" : "PENDIENTE"}
                 </span>
-                <span>{formatMoney(totalesPorMaleta[i].total)}</span>
+                <span>
+                  {formatMoney(m.comprobante.pagado ? totalesPorMaleta[i].total : saldoMaleta)}
+                </span>
               </div>
             ) : (
               <div key={i} className="flex justify-between text-slate-500">
                 <span>Maleta {i + 1}: sin comprobante</span>
               </div>
-            ),
-          )}
+            );
+          })}
           <div className="mt-1 flex justify-between border-t border-dashed border-black pt-1 font-bold">
             <span>TOTAL</span>
             <span>{formatMoney(total)}</span>
@@ -225,7 +237,7 @@ export function ReciboImprimible({
       ) : (
         <div className="flex justify-between font-bold">
           <span>{principal?.pagado ? "PAGADO" : "PENDIENTE"}</span>
-          <span>{formatMoney(total)}</span>
+          <span>{formatMoney(principal?.pagado ? total : saldoPendiente)}</span>
         </div>
       )}
 

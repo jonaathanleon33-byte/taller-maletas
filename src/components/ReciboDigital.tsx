@@ -54,6 +54,8 @@ export function ReciboDigital({
 
   const totalesPorMaleta = maletas.map((m) => totalesDe(m.items, m.comprobante));
   const total = totalesPorMaleta.reduce((acc, t) => acc + t.total, 0);
+  const abono = maletas.reduce((acc, m) => acc + (m.comprobante?.abono ?? 0), 0);
+  const saldoPendiente = total - abono;
   const hayItems = maletas.some((m) => m.items.length > 0);
   const pieLineas = negocio.pie_texto.split("\n").filter(Boolean);
   const pagado = multiples
@@ -203,20 +205,42 @@ export function ReciboDigital({
         )}
       </div>
 
-      <div className="mt-6 flex items-center justify-between rounded-xl bg-[#f8fafc] px-4 py-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]">
-            Total
-          </p>
-          <p className="text-xl font-bold text-[#0f172a]">{formatMoney(total)}</p>
+      <div className="mt-6 rounded-xl bg-[#f8fafc] px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+              Total
+            </p>
+            <p className="text-xl font-bold text-[#0f172a]">{formatMoney(total)}</p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              pagado ? "bg-[#d1fae5] text-[#065f46]" : "bg-[#fef3c7] text-[#92400e]"
+            }`}
+          >
+            {pagado ? "Pagado" : "Pendiente"}
+          </span>
         </div>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            pagado ? "bg-[#d1fae5] text-[#065f46]" : "bg-[#fef3c7] text-[#92400e]"
-          }`}
-        >
-          {pagado ? "Pagado" : "Pendiente"}
-        </span>
+        {abono > 0 ? (
+          <div className="mt-3 flex items-center justify-between border-t border-[#e2e8f0] pt-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+                Abono
+              </p>
+              <p className="text-sm font-semibold text-[#0f172a]">
+                -{formatMoney(abono)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+                Saldo pendiente
+              </p>
+              <p className="text-base font-bold text-[#92400e]">
+                {formatMoney(saldoPendiente)}
+              </p>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <p className="mt-6 text-left text-[11px] leading-relaxed text-[#94a3b8]">

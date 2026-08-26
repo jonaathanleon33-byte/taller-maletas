@@ -131,6 +131,7 @@ export async function actualizarComprobante(
   const atendidoPor = String(formData.get("atendido_por") ?? "").trim() || null;
   const descuentoGlobal = Number(formData.get("descuento_global") || 0);
   const impuestos = Number(formData.get("impuestos") || 0);
+  const abono = Number(formData.get("abono") || 0);
   const pagado = formData.get("pagado") === "on";
 
   if (Number.isNaN(descuentoGlobal) || descuentoGlobal < 0) {
@@ -138,6 +139,9 @@ export async function actualizarComprobante(
   }
   if (Number.isNaN(impuestos) || impuestos < 0) {
     return { error: "Los impuestos no son válidos." };
+  }
+  if (Number.isNaN(abono) || abono < 0) {
+    return { error: "El abono no es válido." };
   }
 
   const supabase = await createClient();
@@ -148,6 +152,7 @@ export async function actualizarComprobante(
       atendido_por: atendidoPor,
       descuento_global: descuentoGlobal,
       impuestos,
+      abono,
       pagado,
     })
     .eq("id", comprobanteId);

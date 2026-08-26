@@ -110,6 +110,22 @@ export function ComprobanteConfigForm({
         </div>
       </div>
 
+      <div>
+        <label className={labelClass} htmlFor="abono">
+          Abono
+        </label>
+        <input
+          id="abono"
+          name="abono"
+          type="number"
+          inputMode="numeric"
+          min="0"
+          defaultValue={comprobante.abono}
+          className={inputClass}
+          placeholder="Adelanto que dejó el cliente"
+        />
+      </div>
+
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input
           type="checkbox"

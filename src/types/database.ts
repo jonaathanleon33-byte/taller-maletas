@@ -68,6 +68,7 @@ export type Comprobante = {
   atendido_por: string | null;
   descuento_global: number;
   impuestos: number;
+  abono: number;
   pagado: boolean;
   cliente_nombre: string | null;
   cliente_telefono: string | null;
@@ -160,6 +161,7 @@ export type Database = {
           | "atendido_por"
           | "descuento_global"
           | "impuestos"
+          | "abono"
           | "pagado"
           | "cliente_nombre"
           | "cliente_telefono"
@@ -169,6 +171,7 @@ export type Database = {
           atendido_por?: string | null;
           descuento_global?: number;
           impuestos?: number;
+          abono?: number;
           pagado?: boolean;
           cliente_nombre?: string | null;
           cliente_telefono?: string | null;

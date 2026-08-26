@@ -74,6 +74,18 @@ export function ComprobanteEditor({
             <span>Total</span>
             <span>{formatMoney(total)}</span>
           </div>
+          {comprobante.abono > 0 ? (
+            <>
+              <div className="flex justify-between text-slate-600">
+                <span>Abono</span>
+                <span>-{formatMoney(comprobante.abono)}</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-100 pt-1 text-base font-semibold text-slate-900">
+                <span>Saldo pendiente</span>
+                <span>{formatMoney(total - comprobante.abono)}</span>
+              </div>
+            </>
+          ) : null}
         </div>
       </section>
 
