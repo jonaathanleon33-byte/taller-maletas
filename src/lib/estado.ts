@@ -86,7 +86,7 @@ const COLOR_CLASSES: Record<EstadoColor, { bar: string; badge: string; dot: stri
 const ESTADO_COLOR: Record<Estado, EstadoColor> = {
   recibida: "amarillo",
   lista: "verde",
-  entregada: "gris",
+  entregada: "azul",
 };
 
 export function getEstadoColor(orden: Pick<Orden, "estado" | "fecha_recibido">): EstadoColor {
