@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { exportarOrdenASheets } from "@/lib/google-sheets";
+import { capitalizarPrimera } from "@/lib/texto";
 import type { Estado, Tamano, TipoMaleta } from "@/types/database";
 
 export type CrearOrdenState = { error: string } | null;
@@ -16,14 +17,14 @@ export async function crearOrden(
   formData: FormData,
 ): Promise<CrearOrdenState> {
   const numero_recibo = campoRequerido(formData, "numero_recibo") || null;
-  const cliente_nombre = campoRequerido(formData, "cliente_nombre");
+  const cliente_nombre = capitalizarPrimera(campoRequerido(formData, "cliente_nombre"));
   const cliente_telefono = campoRequerido(formData, "cliente_telefono");
-  const marca = campoRequerido(formData, "marca");
-  const color = campoRequerido(formData, "color");
+  const marca = capitalizarPrimera(campoRequerido(formData, "marca"));
+  const color = capitalizarPrimera(campoRequerido(formData, "color"));
   const tamano = campoRequerido(formData, "tamano") as Tamano;
   const tipo = campoRequerido(formData, "tipo") as TipoMaleta;
-  const dano_descripcion = campoRequerido(formData, "dano_descripcion");
-  const ubicacion = campoRequerido(formData, "ubicacion");
+  const dano_descripcion = capitalizarPrimera(campoRequerido(formData, "dano_descripcion"));
+  const ubicacion = capitalizarPrimera(campoRequerido(formData, "ubicacion"));
   const tecnico_asignado = campoRequerido(formData, "tecnico_asignado") || null;
   const estado = (campoRequerido(formData, "estado") || "recibida") as Estado;
   const fecha_recibidoRaw = campoRequerido(formData, "fecha_recibido");

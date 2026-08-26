@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { actualizarPrecioEnSheets } from "@/lib/google-sheets";
 import { calcularTotales } from "@/lib/money";
+import { capitalizarPrimera } from "@/lib/texto";
 import type { MetodoPago } from "@/types/database";
 
 // Después de cualquier cambio en los ítems o en descuentos/impuestos
@@ -52,7 +53,9 @@ export async function agregarItem(
   formData: FormData,
 ): Promise<AgregarItemState> {
   const servicioId = String(formData.get("servicio_id") ?? "") || null;
-  const descripcion = String(formData.get("descripcion") ?? "").trim();
+  const descripcion = capitalizarPrimera(
+    String(formData.get("descripcion") ?? "").trim(),
+  );
   const precioUnitario = Number(formData.get("precio_unitario"));
   const cantidad = Number(formData.get("cantidad") || 1);
   const descuentoPct = Number(formData.get("descuento_pct") || 0);

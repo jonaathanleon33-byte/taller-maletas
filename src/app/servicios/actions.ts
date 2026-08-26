@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { capitalizarPrimera } from "@/lib/texto";
 
 export type CrearServicioState = { error: string } | null;
 
@@ -9,7 +10,7 @@ export async function crearServicio(
   _prevState: CrearServicioState,
   formData: FormData,
 ): Promise<CrearServicioState> {
-  const nombre = String(formData.get("nombre") ?? "").trim();
+  const nombre = capitalizarPrimera(String(formData.get("nombre") ?? "").trim());
   const precioRaw = String(formData.get("precio") ?? "").trim();
   const precio = Number(precioRaw);
 
