@@ -1,4 +1,5 @@
 import { TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
+import { formatFecha } from "@/lib/format";
 import type { Orden } from "@/types/database";
 
 export function EtiquetaImprimible({
@@ -17,6 +18,12 @@ export function EtiquetaImprimible({
       <p className="mt-1 text-center text-2xl font-black print:text-[16px]">
         #{orden.numero_recibo}
       </p>
+
+      {orden.fecha_prometida ? (
+        <p className="text-center text-sm print:text-[9px]">
+          Entrega {formatFecha(orden.fecha_prometida)}
+        </p>
+      ) : null}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 

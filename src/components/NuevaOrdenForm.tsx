@@ -232,7 +232,7 @@ export function NuevaOrdenForm({
 
         <div>
           <label className={labelClass} htmlFor="dano_descripcion">
-            Descripción del daño *
+            Descripción del arreglo *
           </label>
           <textarea
             id="dano_descripcion"
