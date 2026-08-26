@@ -1,11 +1,7 @@
 import { AgregarItemForm } from "@/components/AgregarItemForm";
-import { EliminarItemButton } from "@/components/EliminarItemButton";
+import { ItemRow } from "@/components/ItemRow";
 import { ComprobanteConfigForm } from "@/components/ComprobanteConfigForm";
-import {
-  calcularSubtotalItem,
-  calcularTotales,
-  formatMoney,
-} from "@/lib/money";
+import { calcularTotales, formatMoney } from "@/lib/money";
 import type { Comprobante, ComprobanteItem, Servicio } from "@/types/database";
 
 export function ComprobanteEditor({
@@ -48,26 +44,7 @@ export function ComprobanteEditor({
         {items.length > 0 ? (
           <ul className="divide-y divide-slate-100">
             {items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between gap-3 py-2.5"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900">
-                    {item.descripcion}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {item.cantidad} × {formatMoney(item.precio_unitario)}
-                    {item.descuento_pct > 0 ? ` · -${item.descuento_pct}%` : ""}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-sm font-medium text-slate-900">
-                    {formatMoney(calcularSubtotalItem(item))}
-                  </span>
-                  <EliminarItemButton path={path} itemId={item.id} />
-                </div>
-              </li>
+              <ItemRow key={item.id} path={path} item={item} />
             ))}
           </ul>
         ) : (

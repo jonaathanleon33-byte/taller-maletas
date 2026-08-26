@@ -55,6 +55,20 @@ export async function eliminarItem(path: string, itemId: string) {
   revalidatePath(path);
 }
 
+export async function actualizarPrecioItem(
+  path: string,
+  itemId: string,
+  precioUnitario: number,
+) {
+  if (Number.isNaN(precioUnitario) || precioUnitario < 0) return;
+  const supabase = await createClient();
+  await supabase
+    .from("comprobante_items")
+    .update({ precio_unitario: precioUnitario })
+    .eq("id", itemId);
+  revalidatePath(path);
+}
+
 export type ActualizarComprobanteState = { error: string } | null;
 
 export async function actualizarComprobante(
