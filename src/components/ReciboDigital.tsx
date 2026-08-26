@@ -1,6 +1,6 @@
 import { LogoTaller } from "@/components/LogoTaller";
 import { calcularSubtotalItem, calcularTotales, formatMoney } from "@/lib/money";
-import { formatFechaHoraRecibo } from "@/lib/format";
+import { formatFecha } from "@/lib/format";
 import type { Comprobante, ComprobanteItem, NegocioConfig } from "@/types/database";
 
 const METODO_PAGO_LABELS: Record<Comprobante["metodo_pago"], string> = {
@@ -96,13 +96,19 @@ export function ReciboDigital({
             Fecha
           </p>
           <p className="text-sm font-medium text-[#334155]">
-            {formatFechaHoraRecibo(fecha)}
+            {formatFecha(fecha)}
           </p>
-          {fechaEntrega ? (
-            <p className="text-xs text-[#64748b]">Entrega {fechaEntrega}</p>
-          ) : null}
         </div>
       </div>
+
+      {fechaEntrega ? (
+        <div className="mt-3 rounded-xl bg-[#fef3c7] px-4 py-2.5 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#92400e]">
+            Fecha de entrega
+          </p>
+          <p className="text-lg font-bold text-[#92400e]">{fechaEntrega}</p>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
@@ -214,7 +220,7 @@ export function ReciboDigital({
         </span>
       </div>
 
-      <p className="mt-6 text-center text-[11px] leading-relaxed text-[#94a3b8]">
+      <p className="mt-6 text-left text-[11px] leading-relaxed text-[#94a3b8]">
         {pieLineas.map((linea, i) => (
           <span key={i}>
             {linea}
