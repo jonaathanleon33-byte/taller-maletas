@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccionesRecibo } from "@/components/AccionesRecibo";
 import { ReciboImprimible } from "@/components/ReciboImprimible";
+import { ReciboDigital } from "@/components/ReciboDigital";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
@@ -107,8 +108,23 @@ export default async function ImprimirComprobantePage({
         />
       </div>
 
+      {/* Versión "bonita" oculta, solo para la imagen que se comparte por
+          WhatsApp — no se imprime ni se ve en pantalla. */}
+      <div className="fixed top-0 left-0 -z-50 opacity-0">
+        <ReciboDigital
+          id="recibo-compartir"
+          negocio={negocio}
+          numeroRecibo={orden.numero_recibo}
+          fecha={comprobante.created_at}
+          clienteNombre={orden.cliente_nombre}
+          clienteTelefono={orden.cliente_telefono}
+          maletas={maletas}
+          fechaEntrega={orden.fecha_prometida ? formatFecha(orden.fecha_prometida) : undefined}
+        />
+      </div>
+
       <AccionesRecibo
-        targetId="recibo-capture"
+        targetId="recibo-compartir"
         telefono={orden.cliente_telefono}
         mensaje={mensaje}
       />
