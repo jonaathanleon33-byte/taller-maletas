@@ -1,6 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function BotonInicio() {
+  const pathname = usePathname();
+
+  // La página /r/[archivo] es el recibo público que se comparte por
+  // WhatsApp — el cliente que la abre no debe tener forma de entrar
+  // al resto del sistema (lista de órdenes, otros clientes, etc.).
+  if (pathname?.startsWith("/r/")) return null;
+
   return (
     <Link
       href="/"
