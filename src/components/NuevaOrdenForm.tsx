@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   crearOrden,
   type CrearOrdenState,
@@ -11,6 +11,7 @@ import { comprimirImagen } from "@/lib/comprimir-imagen";
 import type { Cliente } from "@/lib/clientes";
 
 const initialState: CrearOrdenState = null;
+const MAX_FOTOS = 3;
 
 function ahoraLocal() {
   const now = new Date();
@@ -39,9 +40,11 @@ export function NuevaOrdenForm({
     crearOrden,
     initialState,
   );
+  const [fotos, setFotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [comprimiendo, setComprimiendo] = useState(false);
   const [fechaRecibido] = useState(ahoraLocal);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [clienteNombre, setClienteNombre] = useState(
     prefill?.cliente_nombre ?? "",
   );
@@ -65,27 +68,50 @@ export function NuevaOrdenForm({
     return () => previews.forEach((url) => URL.revokeObjectURL(url));
   }, [previews]);
 
+  // El input que se ve/oculta cambia de nodo del DOM según cuántas
+  // fotos hay (ver JSX abajo), así que sincronizamos su .files acá en
+  // vez de al momento de cambiar el estado — así siempre apunta al
+  // input que esté montado en ese momento.
+  useEffect(() => {
+    const dt = new DataTransfer();
+    fotos.forEach((f) => dt.items.add(f));
+    if (fileInputRef.current) fileInputRef.current.files = dt.files;
+  }, [fotos]);
+
+  // Cada vez que se abre el selector de fotos (cámara o galería), el
+  // navegador reemplaza por completo lo elegido antes — por eso había
+  // que ir sumando las fotos nosotros mismos en vez de solo usar
+  // input.files directamente.
   async function handleFotos(e: React.ChangeEvent<HTMLInputElement>) {
-    const input = e.target;
-    const files = Array.from(input.files ?? []).slice(0, 3);
-    if (files.length === 0) return;
+    const nuevos = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (nuevos.length === 0) return;
+
+    const espacio = MAX_FOTOS - fotos.length;
+    const aAgregar = nuevos.slice(0, Math.max(espacio, 0));
+    if (aAgregar.length === 0) return;
 
     setComprimiendo(true);
     try {
       const comprimidas = await Promise.all(
-        files.map((f) => comprimirImagen(f)),
+        aAgregar.map((f) => comprimirImagen(f)),
       );
-      const dt = new DataTransfer();
-      comprimidas.forEach((f) => dt.items.add(f));
-      input.files = dt.files;
-
-      setPreviews((prev) => {
-        prev.forEach((url) => URL.revokeObjectURL(url));
-        return comprimidas.map((f) => URL.createObjectURL(f));
-      });
+      setFotos((prev) => [...prev, ...comprimidas].slice(0, MAX_FOTOS));
+      setPreviews((prev) => [
+        ...prev,
+        ...comprimidas.map((f) => URL.createObjectURL(f)),
+      ]);
     } finally {
       setComprimiendo(false);
     }
+  }
+
+  function quitarFoto(i: number) {
+    setPreviews((prev) => {
+      URL.revokeObjectURL(prev[i]);
+      return prev.filter((_, idx) => idx !== i);
+    });
+    setFotos((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   return (
@@ -247,31 +273,57 @@ export function NuevaOrdenForm({
 
       <section className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-          Fotos (1 a 3) *
+          Fotos ({fotos.length}/{MAX_FOTOS}) *
         </h2>
-        <input
-          type="file"
-          name="fotos"
-          accept="image/*"
-          capture="environment"
-          multiple
-          required
-          onChange={handleFotos}
-          className="text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
-        />
+        {fotos.length < MAX_FOTOS ? (
+          <input
+            ref={fileInputRef}
+            type="file"
+            name="fotos"
+            accept="image/*"
+            capture="environment"
+            multiple
+            required={fotos.length === 0}
+            onChange={handleFotos}
+            className="text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
+          />
+        ) : (
+          <>
+            <input ref={fileInputRef} type="file" name="fotos" className="hidden" />
+            <p className="text-sm text-slate-500">
+              Ya agregaste {MAX_FOTOS} fotos. Quita una para agregar otra.
+            </p>
+          </>
+        )}
         {comprimiendo ? (
           <p className="text-sm text-slate-500">Preparando fotos…</p>
         ) : null}
         {previews.length > 0 ? (
           <div className="flex gap-2">
             {previews.map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={src}
-                alt={`Foto ${i + 1}`}
-                className="h-20 w-20 rounded-lg object-cover"
-              />
+              <div key={i} className="relative h-20 w-20 shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Foto ${i + 1}`}
+                  className="h-20 w-20 rounded-lg object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => quitarFoto(i)}
+                  aria-label="Quitar foto"
+                  className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-white shadow"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+                    <path
+                      d="M6 6l12 12M18 6L6 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         ) : null}
