@@ -88,13 +88,13 @@ export function ItemRow({
               type="button"
               onClick={() => setEditando(true)}
               aria-label="Editar precio"
-              className="text-slate-400 active:text-slate-700"
+              className="rounded-full bg-blue-50 p-1 text-blue-600 active:bg-blue-100 active:text-blue-800"
             >
-              <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
                 <path
                   d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"
                   stroke="currentColor"
-                  strokeWidth="1.5"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
