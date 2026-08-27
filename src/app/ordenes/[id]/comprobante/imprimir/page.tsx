@@ -100,7 +100,10 @@ export default async function ImprimirComprobantePage({
         </Link>
       </div>
 
-      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[80mm] print:rounded-none print:p-1 print:shadow-none">
+      <div
+        id="recibo-card"
+        className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[80mm] print:rounded-none print:p-1 print:shadow-none print:hidden"
+      >
         <ReciboImprimible
           id="recibo-capture"
           negocio={negocio}
@@ -112,6 +115,19 @@ export default async function ImprimirComprobantePage({
           fechaEntrega={orden.fecha_prometida ? formatFecha(orden.fecha_prometida) : undefined}
         />
       </div>
+
+      {/* Se llena con una versión en blanco y negro puro (sin grises)
+          justo antes de imprimir — ver AccionesRecibo — para que la
+          impresora térmica no muestre el texto borroso. 72mm y no
+          80mm porque en papel de 80mm el área imprimible real es más
+          angosta que el ancho nominal del rollo. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        id="recibo-print-img"
+        alt="Recibo"
+        className="hidden print:block print:w-[72mm]"
+        style={{ imageRendering: "pixelated" }}
+      />
 
       {/* Versión "bonita" oculta, solo para la imagen que se comparte por
           WhatsApp — no se imprime ni se ve en pantalla. */}

@@ -57,7 +57,10 @@ export default async function ImprimirVentaPage({
         </Link>
       </div>
 
-      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[80mm] print:rounded-none print:p-1 print:shadow-none">
+      <div
+        id="recibo-card"
+        className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[80mm] print:rounded-none print:p-1 print:shadow-none print:hidden"
+      >
         <ReciboImprimible
           id="recibo-capture"
           negocio={negocio}
@@ -68,6 +71,16 @@ export default async function ImprimirVentaPage({
           maletas={[{ comprobante, items: items ?? [] }]}
         />
       </div>
+
+      {/* Se llena con una versión en blanco y negro puro (sin grises)
+          justo antes de imprimir — ver AccionesRecibo. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        id="recibo-print-img"
+        alt="Recibo"
+        className="hidden print:block print:w-[72mm]"
+        style={{ imageRendering: "pixelated" }}
+      />
 
       <AccionesRecibo
         targetId="recibo-capture"

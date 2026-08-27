@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { linkWhatsapp } from "@/lib/estado";
 import { createClient } from "@/lib/supabase/client";
+import { prepararImagenParaImprimir } from "@/lib/imprimir-nitido";
 
 async function capturarRecibo(el: HTMLElement): Promise<Blob | null> {
   // html2canvas 1.x no sabe interpretar los colores oklch()/lab() que
@@ -42,6 +43,18 @@ export function AccionesRecibo({
   mensaje: string;
 }) {
   const [enviando, setEnviando] = useState(false);
+  const [imprimiendo, setImprimiendo] = useState(false);
+
+  async function imprimir() {
+    setImprimiendo(true);
+    await prepararImagenParaImprimir({
+      captureId: "recibo-capture",
+      imgId: "recibo-print-img",
+      cardId: "recibo-card",
+    });
+    setImprimiendo(false);
+    window.print();
+  }
 
   // La navegación con window.location.href no necesita un toque
   // "fresco" como sí lo necesitan la descarga de archivos o
@@ -84,10 +97,11 @@ export function AccionesRecibo({
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => window.print()}
-          className="flex-1 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white active:bg-slate-700"
+          onClick={imprimir}
+          disabled={imprimiendo}
+          className="flex-1 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white active:bg-slate-700 disabled:opacity-60"
         >
-          Imprimir
+          {imprimiendo ? "Preparando…" : "Imprimir"}
         </button>
         <button
           type="button"
