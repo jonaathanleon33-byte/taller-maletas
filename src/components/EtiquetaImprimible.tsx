@@ -10,7 +10,7 @@ export function EtiquetaImprimible({
   orden: Orden;
 }) {
   return (
-    <div className="mx-auto w-full max-w-[320px] font-mono leading-relaxed text-black print:max-w-[54mm] print:leading-snug">
+    <div className="mx-auto w-full max-w-[320px] font-sans leading-relaxed text-black print:max-w-[54mm] print:leading-snug print:font-bold">
       <p className="text-center text-[11px] font-bold uppercase tracking-wide print:text-[11px]">
         {negocioNombre}
       </p>
@@ -31,7 +31,7 @@ export function EtiquetaImprimible({
         Cliente
       </p>
       <p className="text-base font-bold print:text-[13px]">{orden.cliente_nombre}</p>
-      <p className="text-sm print:text-[11px]">{orden.cliente_telefono}</p>
+      <p className="text-sm font-bold print:text-[11px]">{orden.cliente_telefono}</p>
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 
@@ -41,7 +41,7 @@ export function EtiquetaImprimible({
       <p className="text-base font-bold print:text-[13px]">
         {orden.marca} {orden.color}
       </p>
-      <p className="text-sm print:text-[11px]">
+      <p className="text-sm font-bold print:text-[11px]">
         {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
       </p>
 
