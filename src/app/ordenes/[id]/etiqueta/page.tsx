@@ -54,6 +54,7 @@ export default async function EtiquetaPage({
         id="etiqueta-print-img"
         alt="Etiqueta"
         className="hidden print:block print:w-[58mm]"
+        style={{ imageRendering: "pixelated" }}
       />
 
       <BotonImprimirEtiqueta />

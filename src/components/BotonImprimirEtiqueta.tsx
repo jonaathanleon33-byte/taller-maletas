@@ -12,7 +12,7 @@ async function generarImagenNitida(el: HTMLElement): Promise<string | null> {
   const html2canvas = (await import("html2canvas-pro")).default;
   const canvas = await html2canvas(el, {
     backgroundColor: "#ffffff",
-    scale: 6,
+    scale: 4,
   });
 
   const ctx = canvas.getContext("2d");
@@ -48,7 +48,10 @@ export function BotonImprimirEtiqueta() {
       ) as HTMLImageElement | null;
 
       if (el && img) {
-        const dataUrl = await generarImagenNitida(el);
+        const dataUrl = await Promise.race([
+          generarImagenNitida(el),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+        ]);
         if (dataUrl) {
           await new Promise<void>((resolve) => {
             img.onload = () => resolve();
@@ -65,8 +68,13 @@ export function BotonImprimirEtiqueta() {
 
     // Si algo falló, no queremos imprimir en blanco: dejamos que se
     // vea (e imprima) el texto en vivo como respaldo, aunque salga
-    // con el borroso original.
+    // con el borroso original — pero avisamos, para que no parezca
+    // que el arreglo de nitidez no sirvió cuando en realidad ni se
+    // aplicó esta vez.
     if (!listo) {
+      alert(
+        "No se pudo generar la versión nítida de la etiqueta. Se va a imprimir con el texto normal (puede verse borroso). Probá de nuevo.",
+      );
       document.getElementById("etiqueta-card")?.classList.remove("print:hidden");
     }
 
