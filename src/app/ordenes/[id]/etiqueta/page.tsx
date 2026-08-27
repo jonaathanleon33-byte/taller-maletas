@@ -35,9 +35,26 @@ export default async function EtiquetaPage({
         </Link>
       </div>
 
-      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[58mm] print:rounded-none print:p-1 print:shadow-none">
-        <EtiquetaImprimible negocioNombre={negocio.nombre} orden={orden} />
+      <div
+        id="etiqueta-card"
+        className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:hidden"
+      >
+        <EtiquetaImprimible
+          id="etiqueta-capture"
+          negocioNombre={negocio.nombre}
+          orden={orden}
+        />
       </div>
+
+      {/* Se llena con una versión en blanco y negro puro (sin grises)
+          justo antes de imprimir — ver BotonImprimirEtiqueta — para
+          que la impresora térmica no muestre el texto borroso. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        id="etiqueta-print-img"
+        alt="Etiqueta"
+        className="hidden print:block print:w-[58mm]"
+      />
 
       <BotonImprimirEtiqueta />
     </div>

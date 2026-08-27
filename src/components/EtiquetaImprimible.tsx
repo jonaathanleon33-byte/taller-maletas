@@ -3,14 +3,19 @@ import { formatFecha } from "@/lib/format";
 import type { Orden } from "@/types/database";
 
 export function EtiquetaImprimible({
+  id,
   negocioNombre,
   orden,
 }: {
+  id?: string;
   negocioNombre: string;
   orden: Orden;
 }) {
   return (
-    <div className="mx-auto w-full max-w-[320px] font-sans leading-relaxed text-black print:max-w-[54mm] print:leading-snug print:font-bold">
+    <div
+      id={id}
+      className="mx-auto w-[320px] bg-white p-2 font-sans leading-relaxed text-black print:max-w-[54mm] print:leading-snug print:font-bold"
+    >
       <p className="text-center text-[11px] font-bold uppercase tracking-wide print:text-[11px]">
         {negocioNombre}
       </p>
