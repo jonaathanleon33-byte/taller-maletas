@@ -48,12 +48,15 @@ export default async function EtiquetaPage({
 
       {/* Se llena con una versión en blanco y negro puro (sin grises)
           justo antes de imprimir — ver BotonImprimirEtiqueta — para
-          que la impresora térmica no muestre el texto borroso. */}
+          que la impresora térmica no muestre el texto borroso. 48mm y
+          no 58mm porque el área imprimible real de esta impresora es
+          más angosta que el ancho nominal del rollo (confirmado con
+          una impresión real: a 54mm ya se recortaba contenido). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         id="etiqueta-print-img"
         alt="Etiqueta"
-        className="hidden print:block print:w-[58mm]"
+        className="hidden print:block print:w-[48mm]"
         style={{ imageRendering: "pixelated" }}
       />
 
