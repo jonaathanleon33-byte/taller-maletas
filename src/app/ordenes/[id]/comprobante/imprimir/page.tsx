@@ -89,13 +89,18 @@ export default async function ImprimirComprobantePage({
 
   return (
     <div className="flex flex-1 flex-col items-center gap-4 bg-slate-100 px-4 py-6 print:bg-white print:py-0">
+      {/* Esta factura se imprime en la impresora de 80mm — distinta de
+          la del sticker, que se queda en 58mm (ver @page global en
+          globals.css). Se sobreescribe solo para esta página. */}
+      <style>{"@page { size: 80mm auto; margin: 0; }"}</style>
+
       <div className="no-print flex w-full max-w-[320px] items-center justify-between">
         <Link href={`/ordenes/${orden.id}/comprobante`} className="text-sm text-slate-600">
           ← Volver
         </Link>
       </div>
 
-      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[58mm] print:rounded-none print:p-1 print:shadow-none">
+      <div className="w-full max-w-[320px] rounded-lg bg-white p-4 shadow-sm print:max-w-none print:w-[80mm] print:rounded-none print:p-1 print:shadow-none">
         <ReciboImprimible
           id="recibo-capture"
           negocio={negocio}

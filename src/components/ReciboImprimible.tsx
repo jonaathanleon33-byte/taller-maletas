@@ -58,7 +58,7 @@ export function ReciboImprimible({
   return (
     <div
       id={id}
-      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[48mm] print:text-[9px] print:leading-snug print:font-bold"
+      className="mx-auto w-full max-w-[320px] font-mono text-[13px] leading-relaxed text-black print:max-w-[76mm] print:text-[12px] print:leading-snug print:font-bold"
     >
       <div className="flex flex-col items-center text-center">
         {negocio.logo_url ? (
@@ -67,12 +67,12 @@ export function ReciboImprimible({
             src={negocio.logo_url}
             alt="Logo"
             crossOrigin="anonymous"
-            className="h-14 w-14 object-contain print:h-10 print:w-10"
+            className="h-14 w-14 object-contain print:h-14 print:w-14"
           />
         ) : (
-          <LogoTaller className="h-14 w-14 print:h-10 print:w-10" />
+          <LogoTaller className="h-14 w-14 print:h-14 print:w-14" />
         )}
-        <p className="mt-1 text-sm font-bold uppercase tracking-wide print:text-[11px]">
+        <p className="mt-1 text-sm font-bold uppercase tracking-wide print:text-[15px]">
           {negocio.nombre}
         </p>
         <p>{negocio.nit}</p>
@@ -161,7 +161,7 @@ export function ReciboImprimible({
                 {m.items.map((item) => (
                   <div key={item.id}>
                     <p>{item.descripcion}</p>
-                    <div className="flex justify-between text-xs print:text-[9px]">
+                    <div className="flex justify-between text-xs print:text-[11px]">
                       <span>
                         {formatMoney(item.precio_unitario)} x{item.cantidad}{" "}
                         {item.descuento_pct > 0 ? `${item.descuento_pct}%` : "0%"}
@@ -175,7 +175,7 @@ export function ReciboImprimible({
           )}
         </div>
       ) : (
-        <p className="text-center text-xs print:text-[9px]">Sin ítems</p>
+        <p className="text-center text-xs print:text-[11px]">Sin ítems</p>
       )}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
@@ -241,7 +241,7 @@ export function ReciboImprimible({
         </div>
       )}
 
-      <p className="mt-4 text-center text-xs print:text-[8px]">
+      <p className="mt-4 text-center text-xs print:text-[10px]">
         {pieLineas.map((linea, i) => (
           <span key={i}>
             {linea}
