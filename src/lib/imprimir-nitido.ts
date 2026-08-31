@@ -4,9 +4,17 @@
 // borroso. Para evitarlo, capturamos el elemento como imagen y
 // convertimos cada píxel a negro puro o blanco puro (sin grises)
 // antes de imprimir esa imagen en vez del texto en vivo.
+//
+// La escala no puede ser demasiado alta: la imagen final se imprime
+// achicada a unos pocos centímetros (ver print:w-[Xmm] en cada
+// página), y si la capturamos a una resolución mucho más grande que
+// eso, el navegador tiene que "saltar" muchos píxeles para achicarla
+// (así evita reintroducir grises) — y ese salto puede borrar por
+// completo trazos finos de las letras. Con escala 2 el achicado es
+// mucho más suave y no pierde información.
 export async function generarImagenNitida(
   el: HTMLElement,
-  scale = 4,
+  scale = 2,
 ): Promise<string | null> {
   const html2canvas = (await import("html2canvas-pro")).default;
   const canvas = await html2canvas(el, {
