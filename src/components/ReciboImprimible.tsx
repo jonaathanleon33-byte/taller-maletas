@@ -60,6 +60,12 @@ export function ReciboImprimible({
       id={id}
       className="mx-auto w-[320px] bg-white p-2 font-mono text-[13px] leading-relaxed text-black print:max-w-[68mm] print:p-0 print:text-[9px] print:leading-snug print:font-bold"
     >
+      {/* Espacio en blanco al inicio: el cabezal de la impresora
+          térmica imprime más claro en los primeros milímetros hasta
+          "calentar" — mejor perder ese margen en blanco que el logo
+          o el nombre del negocio. */}
+      <div className="h-16" />
+
       <div className="flex flex-col items-center text-center">
         {negocio.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element

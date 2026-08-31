@@ -16,6 +16,12 @@ export function EtiquetaImprimible({
       id={id}
       className="mx-auto w-[320px] bg-white p-2 font-sans leading-relaxed text-black print:max-w-[54mm] print:leading-snug print:font-bold"
     >
+      {/* Espacio en blanco al inicio: el cabezal de la impresora
+          térmica imprime más claro en los primeros milímetros hasta
+          "calentar" — mejor perder ese margen en blanco que en el
+          nombre del negocio. */}
+      <div className="h-16" />
+
       <p className="text-center text-[11px] font-bold uppercase tracking-wide print:text-[11px]">
         {negocioNombre}
       </p>
