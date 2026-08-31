@@ -148,6 +148,7 @@ export default async function ImprimirComprobantePage({
         targetId="recibo-compartir"
         telefono={orden.cliente_telefono}
         mensaje={mensaje}
+        etiquetaHref={`/ordenes/${orden.id}/etiqueta`}
       />
     </div>
   );

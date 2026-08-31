@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { linkWhatsapp } from "@/lib/estado";
 import { createClient } from "@/lib/supabase/client";
 import { prepararImagenParaImprimir } from "@/lib/imprimir-nitido";
@@ -37,10 +38,12 @@ export function AccionesRecibo({
   targetId,
   telefono,
   mensaje,
+  etiquetaHref,
 }: {
   targetId: string;
   telefono: string;
   mensaje: string;
+  etiquetaHref?: string;
 }) {
   const [enviando, setEnviando] = useState(false);
   const [imprimiendo, setImprimiendo] = useState(false);
@@ -116,6 +119,14 @@ export function AccionesRecibo({
         Se abre el chat del cliente con el mensaje y el link a la foto
         del recibo.
       </p>
+      {etiquetaHref ? (
+        <Link
+          href={etiquetaHref}
+          className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-2.5 text-center text-sm font-semibold text-slate-700 active:bg-slate-50"
+        >
+          Imprimir en sticker
+        </Link>
+      ) : null}
     </div>
   );
 }
