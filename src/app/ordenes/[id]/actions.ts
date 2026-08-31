@@ -33,6 +33,23 @@ export async function cambiarEstado(
   return null;
 }
 
+export async function actualizarTelefonoOrden(
+  ordenId: string,
+  telefono: string,
+) {
+  const limpio = telefono.trim();
+  if (!limpio) return;
+
+  const supabase = await createClient();
+  await supabase
+    .from("ordenes")
+    .update({ cliente_telefono: limpio })
+    .eq("id", ordenId);
+
+  revalidatePath(`/ordenes/${ordenId}`);
+  revalidatePath("/");
+}
+
 export type EliminarOrdenState = { error: string } | null;
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- required by useActionState's (prevState, formData) signature */

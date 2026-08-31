@@ -5,6 +5,7 @@ import { EstadoBadge } from "@/components/EstadoBadge";
 import { CambiarEstadoForm } from "@/components/CambiarEstadoForm";
 import { EliminarOrdenButton } from "@/components/EliminarOrdenButton";
 import { InfoRow } from "@/components/InfoRow";
+import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADO_LABELS,
@@ -78,7 +79,7 @@ export default async function OrdenDetallePage({
           </div>
 
           <div className="divide-y divide-slate-100">
-            <InfoRow label="Teléfono">{orden.cliente_telefono}</InfoRow>
+            <TelefonoClienteRow ordenId={orden.id} telefono={orden.cliente_telefono} />
             <InfoRow label="Maleta">
               {orden.marca} {orden.color}
             </InfoRow>
