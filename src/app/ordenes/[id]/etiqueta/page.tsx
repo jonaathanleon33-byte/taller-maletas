@@ -4,6 +4,7 @@ import { EtiquetaImprimible } from "@/components/EtiquetaImprimible";
 import { BotonImprimirEtiqueta } from "@/components/BotonImprimirEtiqueta";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
+import { calcularTotales } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,24 @@ export default async function EtiquetaPage({
     notFound();
   }
 
+  const { data: comprobante } = await supabase
+    .from("comprobantes")
+    .select("*")
+    .eq("orden_id", id)
+    .maybeSingle();
+
+  const { data: items } = comprobante
+    ? await supabase
+        .from("comprobante_items")
+        .select("*")
+        .eq("comprobante_id", comprobante.id)
+    : { data: null };
+
+  const precioFinal = comprobante
+    ? calcularTotales(items ?? [], comprobante.descuento_global, comprobante.impuestos)
+        .total - comprobante.abono
+    : null;
+
   const negocio = await obtenerNegocioConfig();
 
   return (
@@ -43,6 +62,7 @@ export default async function EtiquetaPage({
           id="etiqueta-capture"
           negocioNombre={negocio.nombre}
           orden={orden}
+          precioFinal={precioFinal}
         />
       </div>
 
