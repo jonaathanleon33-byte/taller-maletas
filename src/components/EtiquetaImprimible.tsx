@@ -59,6 +59,17 @@ export function EtiquetaImprimible({
         {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
       </p>
 
+      {orden.ubicacion ? (
+        <>
+          <hr className="my-2 border-dashed border-black print:my-1" />
+
+          <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
+            Ubicación
+          </p>
+          <p className="text-lg font-bold print:text-[15px]">{orden.ubicacion}</p>
+        </>
+      ) : null}
+
       <hr className="my-2 border-dashed border-black print:my-1" />
 
       <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
