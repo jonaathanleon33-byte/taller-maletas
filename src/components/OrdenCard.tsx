@@ -7,8 +7,61 @@ import {
   getEstadoClasses,
 } from "@/lib/estado";
 import { EstadoBadge } from "@/components/EstadoBadge";
+import { formatMoney } from "@/lib/money";
 
-export function OrdenCard({ orden }: { orden: Orden }) {
+export type ComprobanteResumen = {
+  total: number;
+  abono: number;
+  saldoPendiente: number;
+  pagado: boolean;
+};
+
+export function ResumenPago({ resumen }: { resumen: ComprobanteResumen }) {
+  if (resumen.pagado) {
+    return (
+      <div className="flex items-center justify-between text-xs">
+        <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-800">
+          Pagado
+        </span>
+        <span className="font-medium text-slate-700">
+          {formatMoney(resumen.total)}
+        </span>
+      </div>
+    );
+  }
+
+  if (resumen.abono > 0) {
+    return (
+      <div className="flex items-center justify-between text-xs">
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
+          Abono {formatMoney(resumen.abono)}
+        </span>
+        <span className="font-medium text-slate-700">
+          Saldo {formatMoney(resumen.saldoPendiente)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
+        Sin abono
+      </span>
+      <span className="font-medium text-slate-700">
+        {formatMoney(resumen.total)}
+      </span>
+    </div>
+  );
+}
+
+export function OrdenCard({
+  orden,
+  resumen,
+}: {
+  orden: Orden;
+  resumen?: ComprobanteResumen;
+}) {
   const classes = getEstadoClasses(orden);
   const dias = diasSinEntregar(orden);
 
@@ -46,6 +99,12 @@ export function OrdenCard({ orden }: { orden: Orden }) {
           ? "Entregada"
           : `${dias} ${dias === 1 ? "día" : "días"} sin entregar`}
       </div>
+
+      {resumen ? (
+        <div className="mt-2 border-t border-slate-100 pt-2">
+          <ResumenPago resumen={resumen} />
+        </div>
+      ) : null}
     </Link>
   );
 }

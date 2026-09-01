@@ -7,7 +7,9 @@ import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
-import type { Orden } from "@/types/database";
+import { calcularTotales } from "@/lib/money";
+import type { ComprobanteItem, Orden } from "@/types/database";
+import type { ComprobanteResumen } from "@/components/OrdenCard";
 
 function agruparPorRecibo(ordenes: Orden[]) {
   const grupos = new Map<string, Orden[]>();
@@ -65,6 +67,53 @@ export default async function Home({
       error = queryError.message;
     } else {
       ordenes = data ?? [];
+    }
+  }
+
+  // Saldo/abono por orden, para mostrarlo de una vez en cada tarjeta
+  // del listado — se trae en dos consultas en bloque (no una por
+  // orden) para no multiplicar las consultas con la cantidad de
+  // órdenes.
+  const resumenPorOrden = new Map<string, ComprobanteResumen>();
+  if (ordenes.length > 0) {
+    const supabase = await createClient();
+    const ordenIds = ordenes.map((o) => o.id);
+
+    const { data: comprobantes } = await supabase
+      .from("comprobantes")
+      .select("*")
+      .in("orden_id", ordenIds);
+
+    const comprobanteIds = (comprobantes ?? []).map((c) => c.id);
+    const { data: items } =
+      comprobanteIds.length > 0
+        ? await supabase
+            .from("comprobante_items")
+            .select("*")
+            .in("comprobante_id", comprobanteIds)
+        : { data: [] as ComprobanteItem[] };
+
+    const itemsPorComprobante = new Map<string, ComprobanteItem[]>();
+    for (const item of items ?? []) {
+      const lista = itemsPorComprobante.get(item.comprobante_id) ?? [];
+      lista.push(item);
+      itemsPorComprobante.set(item.comprobante_id, lista);
+    }
+
+    for (const c of comprobantes ?? []) {
+      if (!c.orden_id) continue;
+      const { total } = calcularTotales(
+        itemsPorComprobante.get(c.id) ?? [],
+        c.descuento_global,
+        c.impuestos,
+      );
+      if (total <= 0) continue;
+      resumenPorOrden.set(c.orden_id, {
+        total,
+        abono: c.abono,
+        saldoPendiente: total - c.abono,
+        pagado: c.pagado,
+      });
     }
   }
 
@@ -171,9 +220,12 @@ export default async function Home({
             {agruparPorRecibo(ordenes).map((grupo) => (
               <li key={grupo[0].id}>
                 {grupo.length > 1 ? (
-                  <OrdenCardGrupo ordenes={grupo} />
+                  <OrdenCardGrupo ordenes={grupo} resumenPorOrden={resumenPorOrden} />
                 ) : (
-                  <OrdenCard orden={grupo[0]} />
+                  <OrdenCard
+                    orden={grupo[0]}
+                    resumen={resumenPorOrden.get(grupo[0].id)}
+                  />
                 )}
               </li>
             ))}
