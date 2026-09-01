@@ -25,37 +25,37 @@ export function EtiquetaImprimible({
           nombre del negocio. */}
       <div className="h-16" />
 
-      <p className="text-center text-sm font-bold uppercase tracking-wide print:text-[13px]">
+      <p className="text-center text-base font-bold uppercase tracking-wide print:text-[15px]">
         {negocioNombre}
       </p>
 
-      <p className="mt-1 text-center text-3xl font-black print:text-[24px]">
+      <p className="mt-1 text-center text-4xl font-black print:text-[28px]">
         #{orden.numero_recibo}
       </p>
 
       {orden.fecha_prometida ? (
-        <p className="text-center text-base font-bold print:text-[13px]">
+        <p className="text-center text-lg font-bold print:text-[15px]">
           Entrega {formatFecha(orden.fecha_prometida)}
         </p>
       ) : null}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 
-      <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
+      <p className="text-base font-bold uppercase tracking-wide text-slate-500 print:text-[13px] print:text-black">
         Cliente
       </p>
-      <p className="text-lg font-bold print:text-[15px]">{orden.cliente_nombre}</p>
-      <p className="text-base font-bold print:text-[13px]">{orden.cliente_telefono}</p>
+      <p className="text-xl font-bold print:text-[17px]">{orden.cliente_nombre}</p>
+      <p className="text-lg font-bold print:text-[15px]">{orden.cliente_telefono}</p>
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 
-      <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
+      <p className="text-base font-bold uppercase tracking-wide text-slate-500 print:text-[13px] print:text-black">
         Maleta
       </p>
-      <p className="text-lg font-bold print:text-[15px]">
+      <p className="text-xl font-bold print:text-[17px]">
         {orden.marca} {orden.color}
       </p>
-      <p className="text-base font-bold print:text-[13px]">
+      <p className="text-lg font-bold print:text-[15px]">
         {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
       </p>
 
@@ -63,28 +63,28 @@ export function EtiquetaImprimible({
         <>
           <hr className="my-2 border-dashed border-black print:my-1" />
 
-          <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
+          <p className="text-base font-bold uppercase tracking-wide text-slate-500 print:text-[13px] print:text-black">
             Ubicación
           </p>
-          <p className="text-lg font-bold print:text-[15px]">{orden.ubicacion}</p>
+          <p className="text-xl font-bold print:text-[17px]">{orden.ubicacion}</p>
         </>
       ) : null}
 
       <hr className="my-2 border-dashed border-black print:my-1" />
 
-      <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
+      <p className="text-base font-bold uppercase tracking-wide text-slate-500 print:text-[13px] print:text-black">
         Servicio
       </p>
-      <p className="text-lg font-bold print:text-[15px]">{orden.dano_descripcion}</p>
+      <p className="text-xl font-bold print:text-[17px]">{orden.dano_descripcion}</p>
 
       {precioFinal ? (
         <>
           <hr className="my-2 border-dashed border-black print:my-1" />
 
-          <p className="text-sm font-bold uppercase tracking-wide text-slate-500 print:text-[11px] print:text-black">
+          <p className="text-base font-bold uppercase tracking-wide text-slate-500 print:text-[13px] print:text-black">
             Total a pagar
           </p>
-          <p className="text-2xl font-black print:text-[20px]">
+          <p className="text-3xl font-black print:text-[24px]">
             {formatMoney(precioFinal)}
           </p>
         </>
