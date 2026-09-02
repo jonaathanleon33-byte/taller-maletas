@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { linkWhatsapp } from "@/lib/estado";
 import { createClient } from "@/lib/supabase/client";
@@ -39,14 +39,17 @@ export function AccionesRecibo({
   telefono,
   mensaje,
   etiquetaHref,
+  autoAccion,
 }: {
   targetId: string;
   telefono: string;
   mensaje: string;
   etiquetaHref?: string;
+  autoAccion?: "imprimir" | "whatsapp";
 }) {
   const [enviando, setEnviando] = useState(false);
   const [imprimiendo, setImprimiendo] = useState(false);
+  const autoDisparado = useRef(false);
 
   async function imprimir() {
     setImprimiendo(true);
@@ -94,6 +97,24 @@ export function AccionesRecibo({
     }
     window.location.href = linkWhatsapp(telefono, mensajeFinal);
   }
+
+  // Permite llegar a esta pantalla ya con la acción en marcha (desde
+  // el botón correspondiente en la pantalla del comprobante), en vez
+  // de obligar a un clic de más acá.
+  useEffect(() => {
+    if (autoDisparado.current || !autoAccion) return;
+    autoDisparado.current = true;
+    // El setState que disparan imprimir()/enviarWhatsapp() no puede
+    // pasar sincrónicamente dentro del efecto — se difiere un tick.
+    queueMicrotask(() => {
+      if (autoAccion === "imprimir") {
+        imprimir();
+      } else if (autoAccion === "whatsapp") {
+        enviarWhatsapp();
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAccion]);
 
   return (
     <div className="no-print flex w-full max-w-[320px] flex-col gap-2">

@@ -69,21 +69,29 @@ export default async function ComprobantePage({
               servicios={servicios ?? []}
               tecnicos={TECNICOS}
             />
-            <Link
-              href={`/ordenes/${orden.id}/comprobante/imprimir`}
-              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-center text-base font-semibold text-white shadow-md shadow-blue-600/20 active:bg-blue-700"
-            >
-              Imprimir comprobante
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href={`/ordenes/${orden.id}/comprobante/imprimir?accion=imprimir`}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-center text-base font-semibold text-white shadow-md shadow-blue-600/20 active:bg-blue-700"
+              >
+                Imprimir factura
+              </Link>
+              <Link
+                href={`/ordenes/${orden.id}/comprobante/imprimir?accion=whatsapp`}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-center text-base font-semibold text-white shadow-md shadow-emerald-600/20 active:bg-emerald-700"
+              >
+                WhatsApp
+              </Link>
+            </div>
             <Link
               href={`/ordenes/${orden.id}/etiqueta`}
               className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-base font-semibold text-slate-700 active:bg-slate-50"
             >
-              Factura en sticker
+              Imprimir en sticker
             </Link>
             <p className="-mt-2 text-center text-xs text-slate-500">
-              Solo cliente, maleta y servicio — para pegar en la maleta con
-              papel adhesivo.
+              El sticker es solo cliente, maleta y servicio — para pegar en la
+              maleta con papel adhesivo.
             </p>
           </>
         )}

@@ -14,10 +14,15 @@ export const dynamic = "force-dynamic";
 
 export default async function ImprimirComprobantePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ accion?: string }>;
 }) {
   const { id } = await params;
+  const { accion } = await searchParams;
+  const autoAccion =
+    accion === "imprimir" || accion === "whatsapp" ? accion : undefined;
   const supabase = await createClient();
 
   const { data: orden } = await supabase
@@ -149,6 +154,7 @@ export default async function ImprimirComprobantePage({
         telefono={orden.cliente_telefono}
         mensaje={mensaje}
         etiquetaHref={`/ordenes/${orden.id}/etiqueta`}
+        autoAccion={autoAccion}
       />
     </div>
   );
