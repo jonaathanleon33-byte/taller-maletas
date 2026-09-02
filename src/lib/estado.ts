@@ -38,6 +38,10 @@ export const TIPO_LABELS: Record<TipoMaleta, string> = {
   morral: "Morral",
   maletin: "Maletín",
   estuche: "Estuche",
+  manos_libres: "Manos libres",
+  cartera: "Cartera",
+  morral_ruedas: "Morral con ruedas",
+  tula: "Tula",
 };
 
 const DIAS_ALERTA = 30;

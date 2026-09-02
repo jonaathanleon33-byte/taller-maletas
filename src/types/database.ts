@@ -1,5 +1,14 @@
 export type Tamano = "pequeña" | "mediana" | "grande";
-export type TipoMaleta = "fibra" | "lona" | "morral" | "maletin" | "estuche";
+export type TipoMaleta =
+  | "fibra"
+  | "lona"
+  | "morral"
+  | "maletin"
+  | "estuche"
+  | "manos_libres"
+  | "cartera"
+  | "morral_ruedas"
+  | "tula";
 export type Estado = "recibida" | "lista" | "entregada";
 
 export type Orden = {
