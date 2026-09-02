@@ -134,7 +134,7 @@ export default async function OrdenDetallePage({
 
         <Link
           href={`/ordenes/${orden.id}/etiqueta`}
-          className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-center text-sm font-semibold text-slate-700 active:bg-slate-50"
+          className="flex items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-purple-600/20 active:bg-purple-700"
         >
           Factura en sticker
         </Link>
