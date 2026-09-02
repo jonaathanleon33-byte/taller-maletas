@@ -5,9 +5,11 @@ import { LogoTaller } from "@/components/LogoTaller";
 import { OrdenCard } from "@/components/OrdenCard";
 import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
+import { FiltroFechaEntrega } from "@/components/FiltroFechaEntrega";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
+import { formatFecha } from "@/lib/format";
 import type { ComprobanteItem, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
 
@@ -26,12 +28,17 @@ function agruparPorRecibo(ordenes: Orden[]) {
 
 export const dynamic = "force-dynamic";
 
-async function buscarOrdenes(q: string | undefined) {
+async function buscarOrdenes(q: string | undefined, fecha: string | undefined) {
   const supabase = await createClient();
-  let query = supabase
-    .from("ordenes")
-    .select("*")
-    .order("fecha_recibido", { ascending: false });
+  let query = supabase.from("ordenes").select("*");
+
+  if (fecha) {
+    query = query
+      .eq("fecha_prometida", fecha)
+      .order("fecha_prometida", { ascending: true });
+  } else {
+    query = query.order("fecha_recibido", { ascending: false });
+  }
 
   if (q) {
     const term = q.trim();
@@ -46,9 +53,9 @@ async function buscarOrdenes(q: string | undefined) {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; fecha?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, fecha } = await searchParams;
   const negocio = await obtenerNegocioConfig();
 
   const missingEnv =
@@ -62,7 +69,7 @@ export default async function Home({
     error =
       "Falta configurar las variables de entorno de Supabase (.env.local).";
   } else {
-    const { data, error: queryError } = await buscarOrdenes(q);
+    const { data, error: queryError } = await buscarOrdenes(q, fecha);
     if (queryError) {
       error = queryError.message;
     } else {
@@ -194,11 +201,25 @@ export default async function Home({
           </Link>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-2">
           <Suspense fallback={null}>
             <SearchBar />
           </Suspense>
         </div>
+
+        <div className="mb-4">
+          <Suspense fallback={null}>
+            <FiltroFechaEntrega />
+          </Suspense>
+        </div>
+
+        {fecha ? (
+          <p className="mb-3 text-sm font-medium text-slate-600">
+            {ordenes.length > 0
+              ? `Para entregar el ${formatFecha(fecha)} (${ordenes.length})`
+              : `Nada prometido para el ${formatFecha(fecha)}`}
+          </p>
+        ) : null}
 
         {error ? (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
@@ -207,12 +228,18 @@ export default async function Home({
         ) : ordenes.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 py-16 text-center text-slate-500">
             <p className="font-medium">
-              {q ? "No se encontraron órdenes" : "Todavía no hay órdenes"}
+              {fecha
+                ? "No hay maletas prometidas para esa fecha"
+                : q
+                  ? "No se encontraron órdenes"
+                  : "Todavía no hay órdenes"}
             </p>
             <p className="text-sm">
-              {q
-                ? "Probá con otro número de recibo, nombre o teléfono."
-                : "Crea la primera con el botón “Nueva”."}
+              {fecha
+                ? "Probá con otra fecha o quitá el filtro."
+                : q
+                  ? "Probá con otro número de recibo, nombre o teléfono."
+                  : "Crea la primera con el botón “Nueva”."}
             </p>
           </div>
         ) : (
