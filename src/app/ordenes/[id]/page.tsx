@@ -133,13 +133,6 @@ export default async function OrdenDetallePage({
         ) : null}
 
         <Link
-          href={`/ordenes/${orden.id}/etiqueta`}
-          className="flex items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-purple-600/20 active:bg-purple-700"
-        >
-          Factura en sticker
-        </Link>
-
-        <Link
           href={`/ordenes/nueva?recibo=${encodeURIComponent(orden.numero_recibo)}&cliente=${encodeURIComponent(orden.cliente_nombre)}&telefono=${encodeURIComponent(orden.cliente_telefono)}`}
           className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white py-3 text-center text-sm font-semibold text-slate-700 active:bg-slate-50"
         >
@@ -171,6 +164,13 @@ export default async function OrdenDetallePage({
               "→"
             )}
           </span>
+        </Link>
+
+        <Link
+          href={`/ordenes/${orden.id}/etiqueta`}
+          className="flex items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-purple-600/20 active:bg-purple-700"
+        >
+          Factura en sticker
         </Link>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
