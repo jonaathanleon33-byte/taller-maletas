@@ -94,6 +94,10 @@ export function OrdenCard({
         </span>
       </div>
 
+      <p className="mt-1 truncate text-sm text-slate-500">
+        {orden.dano_descripcion}
+      </p>
+
       <div className="mt-2 text-xs text-slate-400">
         {orden.estado === "entregada"
           ? "Entregada"

@@ -49,6 +49,9 @@ export function OrdenCardGrupo({
                       {orden.marca} {orden.color} · {TAMANO_LABELS[orden.tamano]} ·{" "}
                       {TIPO_LABELS[orden.tipo]}
                     </p>
+                    <p className="truncate text-sm text-slate-500">
+                      {orden.dano_descripcion}
+                    </p>
                     <p className="text-xs text-slate-400">
                       {orden.estado === "entregada"
                         ? "Entregada"
