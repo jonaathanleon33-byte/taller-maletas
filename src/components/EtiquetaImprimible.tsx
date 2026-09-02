@@ -3,16 +3,23 @@ import { formatFecha } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
 import type { Orden } from "@/types/database";
 
+type ResumenPago = {
+  total: number;
+  abono: number;
+  saldoPendiente: number;
+  pagado: boolean;
+};
+
 export function EtiquetaImprimible({
   id,
   negocioNombre,
   orden,
-  precioFinal,
+  resumenPago,
 }: {
   id?: string;
   negocioNombre: string;
   orden: Orden;
-  precioFinal?: number | null;
+  resumenPago?: ResumenPago | null;
 }) {
   return (
     <div
@@ -77,16 +84,42 @@ export function EtiquetaImprimible({
       </p>
       <p className="text-4xl font-bold print:text-[25px]">{orden.dano_descripcion}</p>
 
-      {precioFinal ? (
+      {resumenPago ? (
         <>
           <hr className="my-2 border-dashed border-black print:my-1" />
 
-          <p className="text-2xl font-bold uppercase tracking-wide text-slate-500 print:text-[19px] print:text-black">
-            Total a pagar
-          </p>
-          <p className="text-6xl font-black print:text-[36px]">
-            {formatMoney(precioFinal)}
-          </p>
+          {resumenPago.pagado ? (
+            <>
+              <p className="text-2xl font-bold uppercase tracking-wide text-slate-500 print:text-[19px] print:text-black">
+                Estado
+              </p>
+              <p className="text-6xl font-black print:text-[36px]">PAGADO</p>
+              <p className="text-3xl font-bold print:text-[21px]">
+                {formatMoney(resumenPago.total)}
+              </p>
+            </>
+          ) : resumenPago.abono > 0 ? (
+            <>
+              <p className="text-2xl font-bold uppercase tracking-wide text-slate-500 print:text-[19px] print:text-black">
+                Abono {formatMoney(resumenPago.abono)}
+              </p>
+              <p className="text-2xl font-bold uppercase tracking-wide text-slate-500 print:text-[19px] print:text-black">
+                Saldo pendiente
+              </p>
+              <p className="text-6xl font-black print:text-[36px]">
+                {formatMoney(resumenPago.saldoPendiente)}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-2xl font-bold uppercase tracking-wide text-slate-500 print:text-[19px] print:text-black">
+                Total a pagar
+              </p>
+              <p className="text-6xl font-black print:text-[36px]">
+                {formatMoney(resumenPago.total)}
+              </p>
+            </>
+          )}
         </>
       ) : null}
     </div>

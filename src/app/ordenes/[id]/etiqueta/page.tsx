@@ -39,9 +39,21 @@ export default async function EtiquetaPage({
         .eq("comprobante_id", comprobante.id)
     : { data: null };
 
-  const precioFinal = comprobante
-    ? calcularTotales(items ?? [], comprobante.descuento_global, comprobante.impuestos)
-        .total - comprobante.abono
+  const resumenPago = comprobante
+    ? (() => {
+        const total = calcularTotales(
+          items ?? [],
+          comprobante.descuento_global,
+          comprobante.impuestos,
+        ).total;
+        const saldoPendiente = total - comprobante.abono;
+        return {
+          total,
+          abono: comprobante.abono,
+          saldoPendiente,
+          pagado: comprobante.pagado || saldoPendiente <= 0,
+        };
+      })()
     : null;
 
   const negocio = await obtenerNegocioConfig();
@@ -62,7 +74,7 @@ export default async function EtiquetaPage({
           id="etiqueta-capture"
           negocioNombre={negocio.nombre}
           orden={orden}
-          precioFinal={precioFinal}
+          resumenPago={resumenPago}
         />
       </div>
 
