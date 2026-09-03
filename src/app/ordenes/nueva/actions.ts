@@ -26,6 +26,7 @@ export async function crearOrden(
   const dano_descripcion = capitalizarPrimera(campoRequerido(formData, "dano_descripcion"));
   const ubicacion = capitalizarPrimera(campoRequerido(formData, "ubicacion"));
   const tecnico_asignado = campoRequerido(formData, "tecnico_asignado") || null;
+  const recibido_por = campoRequerido(formData, "recibido_por") || null;
   const estado = (campoRequerido(formData, "estado") || "recibida") as Estado;
   const fecha_recibidoRaw = campoRequerido(formData, "fecha_recibido");
   const fecha_prometida = campoRequerido(formData, "fecha_prometida") || null;
@@ -70,6 +71,7 @@ export async function crearOrden(
       dano_descripcion,
       ubicacion,
       tecnico_asignado,
+      recibido_por,
       estado,
       fecha_recibido,
       fecha_prometida,

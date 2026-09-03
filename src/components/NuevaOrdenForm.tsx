@@ -348,6 +348,25 @@ export function NuevaOrdenForm({
         </div>
 
         <div>
+          <label className={labelClass} htmlFor="recibido_por">
+            Recibido por
+          </label>
+          <select
+            id="recibido_por"
+            name="recibido_por"
+            defaultValue=""
+            className={inputClass}
+          >
+            <option value="">Sin especificar</option>
+            {tecnicos.map((tecnico) => (
+              <option key={tecnico} value={tecnico}>
+                {tecnico}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
           <label className={labelClass} htmlFor="tecnico_asignado">
             Técnico asignado
           </label>

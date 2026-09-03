@@ -23,6 +23,7 @@ export type Orden = {
   dano_descripcion: string;
   ubicacion: string;
   tecnico_asignado: string | null;
+  recibido_por: string | null;
   estado: Estado;
   fecha_recibido: string;
   fecha_prometida: string | null;
