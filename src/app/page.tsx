@@ -11,9 +11,27 @@ import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
 import { formatFecha } from "@/lib/format";
-import { estaAtrasada } from "@/lib/estado";
+import { DIAS_ALERTA, estaAtrasada } from "@/lib/estado";
 import type { ComprobanteItem, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
+
+type Filtro = "recibida" | "lista" | "entregada" | "atrasada";
+
+const FILTRO_LABELS: Record<Filtro, string> = {
+  recibida: "Recibidas",
+  lista: "Listas",
+  entregada: "Entregadas",
+  atrasada: "Atrasadas",
+};
+
+function esFiltroValido(valor: string | undefined): valor is Filtro {
+  return (
+    valor === "recibida" ||
+    valor === "lista" ||
+    valor === "entregada" ||
+    valor === "atrasada"
+  );
+}
 
 function agruparPorRecibo(ordenes: Orden[]) {
   const grupos = new Map<string, Orden[]>();
@@ -30,7 +48,21 @@ function agruparPorRecibo(ordenes: Orden[]) {
 
 export const dynamic = "force-dynamic";
 
-async function buscarOrdenes(q: string | undefined, fecha: string | undefined) {
+// diasSinEntregar() redondea hacia abajo los días transcurridos, así
+// que "más de DIAS_ALERTA días" en la práctica solo se cumple desde
+// el día DIAS_ALERTA+1 completo — este corte replica exactamente esa
+// regla para que el filtro coincida con el contador de arriba.
+function cutoffAtrasada() {
+  return new Date(
+    Date.now() - (DIAS_ALERTA + 1) * 24 * 60 * 60 * 1000,
+  ).toISOString();
+}
+
+async function buscarOrdenes(
+  q: string | undefined,
+  fecha: string | undefined,
+  filtro: Filtro | undefined,
+) {
   const supabase = await createClient();
   let query = supabase.from("ordenes").select("*");
 
@@ -38,8 +70,18 @@ async function buscarOrdenes(q: string | undefined, fecha: string | undefined) {
     query = query
       .eq("fecha_prometida", fecha)
       .order("fecha_prometida", { ascending: true });
+  } else if (filtro === "atrasada") {
+    query = query.order("fecha_recibido", { ascending: true });
   } else {
     query = query.order("fecha_recibido", { ascending: false });
+  }
+
+  if (filtro === "atrasada") {
+    query = query.neq("estado", "entregada").lte("fecha_recibido", cutoffAtrasada());
+  } else if (filtro === "recibida" || filtro === "lista") {
+    query = query.eq("estado", filtro).gt("fecha_recibido", cutoffAtrasada());
+  } else if (filtro === "entregada") {
+    query = query.eq("estado", "entregada");
   }
 
   if (q) {
@@ -55,9 +97,10 @@ async function buscarOrdenes(q: string | undefined, fecha: string | undefined) {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; fecha?: string }>;
+  searchParams: Promise<{ q?: string; fecha?: string; filtro?: string }>;
 }) {
-  const { q, fecha } = await searchParams;
+  const { q, fecha, filtro: filtroRaw } = await searchParams;
+  const filtro = esFiltroValido(filtroRaw) ? filtroRaw : undefined;
   const negocio = await obtenerNegocioConfig();
 
   const missingEnv =
@@ -71,7 +114,7 @@ export default async function Home({
     error =
       "Falta configurar las variables de entorno de Supabase (.env.local).";
   } else {
-    const { data, error: queryError } = await buscarOrdenes(q, fecha);
+    const { data, error: queryError } = await buscarOrdenes(q, fecha, filtro);
     if (queryError) {
       error = queryError.message;
     } else {
@@ -232,6 +275,7 @@ export default async function Home({
             listas={contadores.listas}
             entregadas={contadores.entregadas}
             atrasadas={contadores.atrasadas}
+            filtroActivo={filtro}
           />
         ) : null}
 
@@ -253,6 +297,10 @@ export default async function Home({
               ? `Para entregar el ${formatFecha(fecha)} (${ordenes.length})`
               : `Nada prometido para el ${formatFecha(fecha)}`}
           </p>
+        ) : filtro ? (
+          <p className="mb-3 text-sm font-medium text-slate-600">
+            {FILTRO_LABELS[filtro]} ({ordenes.length})
+          </p>
         ) : null}
 
         {error ? (
@@ -264,16 +312,20 @@ export default async function Home({
             <p className="font-medium">
               {fecha
                 ? "No hay maletas prometidas para esa fecha"
-                : q
-                  ? "No se encontraron órdenes"
-                  : "Todavía no hay órdenes"}
+                : filtro
+                  ? "No hay maletas en este estado"
+                  : q
+                    ? "No se encontraron órdenes"
+                    : "Todavía no hay órdenes"}
             </p>
             <p className="text-sm">
               {fecha
                 ? "Probá con otra fecha o quitá el filtro."
-                : q
-                  ? "Probá con otro número de recibo, nombre, teléfono o servicio."
-                  : "Crea la primera con el botón “Nueva”."}
+                : filtro
+                  ? "Probá con otro estado o quitá el filtro."
+                  : q
+                    ? "Probá con otro número de recibo, nombre, teléfono o servicio."
+                    : "Crea la primera con el botón “Nueva”."}
             </p>
           </div>
         ) : (

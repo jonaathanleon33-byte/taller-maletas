@@ -44,7 +44,7 @@ export const TIPO_LABELS: Record<TipoMaleta, string> = {
   tula: "Tula",
 };
 
-const DIAS_ALERTA = 30;
+export const DIAS_ALERTA = 3;
 
 export function diasSinEntregar(orden: Pick<Orden, "fecha_recibido" | "estado">) {
   if (orden.estado === "entregada") return 0;
