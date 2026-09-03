@@ -64,20 +64,6 @@ export async function actualizarTecnicoOrden(
   revalidatePath("/");
 }
 
-export async function actualizarRecibidoPorOrden(
-  ordenId: string,
-  recibidoPor: string,
-) {
-  const supabase = await createClient();
-  await supabase
-    .from("ordenes")
-    .update({ recibido_por: recibidoPor.trim() || null })
-    .eq("id", ordenId);
-
-  revalidatePath(`/ordenes/${ordenId}`);
-  revalidatePath("/");
-}
-
 export type EliminarOrdenState = { error: string } | null;
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- required by useActionState's (prevState, formData) signature */

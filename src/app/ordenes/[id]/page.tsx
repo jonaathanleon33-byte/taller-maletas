@@ -7,7 +7,6 @@ import { EliminarOrdenButton } from "@/components/EliminarOrdenButton";
 import { InfoRow } from "@/components/InfoRow";
 import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
-import { RecibidoPorRow } from "@/components/RecibidoPorRow";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADO_LABELS,
@@ -90,11 +89,7 @@ export default async function OrdenDetallePage({
               {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
             </InfoRow>
             <InfoRow label="Ubicación">{orden.ubicacion}</InfoRow>
-            <RecibidoPorRow
-              ordenId={orden.id}
-              recibidoPor={orden.recibido_por}
-              tecnicos={TECNICOS}
-            />
+            <InfoRow label="Recibido por">{orden.recibido_por || "—"}</InfoRow>
             <TecnicoAsignadoRow
               ordenId={orden.id}
               tecnico={orden.tecnico_asignado}
