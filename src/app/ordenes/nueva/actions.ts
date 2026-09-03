@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { exportarOrdenASheets } from "@/lib/google-sheets";
-import { capitalizarPrimera } from "@/lib/texto";
+import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import type { Estado, Tamano, TipoMaleta } from "@/types/database";
 
 export type CrearOrdenState = { error: string } | null;
@@ -17,7 +17,7 @@ export async function crearOrden(
   formData: FormData,
 ): Promise<CrearOrdenState> {
   const numero_recibo = campoRequerido(formData, "numero_recibo") || null;
-  const cliente_nombre = capitalizarPrimera(campoRequerido(formData, "cliente_nombre"));
+  const cliente_nombre = capitalizarNombre(campoRequerido(formData, "cliente_nombre"));
   const cliente_telefono = campoRequerido(formData, "cliente_telefono");
   const marca = capitalizarPrimera(campoRequerido(formData, "marca"));
   const color = capitalizarPrimera(campoRequerido(formData, "color"));
