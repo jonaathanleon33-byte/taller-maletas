@@ -124,16 +124,20 @@ export type ActualizarComprobanteState = { error: string } | null;
 export async function actualizarComprobante(
   path: string,
   comprobanteId: string,
+  ordenId: string | null,
   _prevState: ActualizarComprobanteState,
   formData: FormData,
 ): Promise<ActualizarComprobanteState> {
   const metodoPago = String(formData.get("metodo_pago") ?? "efectivo") as MetodoPago;
-  const atendidoPor = String(formData.get("atendido_por") ?? "").trim() || null;
+  const atendidoPor = String(formData.get("atendido_por") ?? "").trim();
   const descuentoGlobal = Number(formData.get("descuento_global") || 0);
   const impuestos = Number(formData.get("impuestos") || 0);
   const abono = Number(formData.get("abono") || 0);
   const pagado = formData.get("pagado") === "on";
 
+  if (!atendidoPor) {
+    return { error: "Selecciona quién atendió al cliente." };
+  }
   if (Number.isNaN(descuentoGlobal) || descuentoGlobal < 0) {
     return { error: "El descuento no es válido." };
   }
@@ -159,6 +163,16 @@ export async function actualizarComprobante(
 
   if (error) {
     return { error: error.message };
+  }
+
+  // La persona que atiende el comprobante es la misma que queda
+  // registrada como quien recibió la maleta en la orden.
+  if (ordenId) {
+    await supabase
+      .from("ordenes")
+      .update({ recibido_por: atendidoPor })
+      .eq("id", ordenId);
+    revalidatePath(`/ordenes/${ordenId}`);
   }
 
   revalidatePath(path);

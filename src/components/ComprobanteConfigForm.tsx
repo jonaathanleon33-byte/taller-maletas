@@ -29,7 +29,12 @@ export function ComprobanteConfigForm({
   comprobante: Comprobante;
   tecnicos: string[];
 }) {
-  const action = actualizarComprobante.bind(null, path, comprobante.id);
+  const action = actualizarComprobante.bind(
+    null,
+    path,
+    comprobante.id,
+    comprobante.orden_id,
+  );
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
@@ -66,10 +71,13 @@ export function ComprobanteConfigForm({
           <select
             id="atendido_por"
             name="atendido_por"
+            required
             defaultValue={comprobante.atendido_por ?? ""}
             className={inputClass}
           >
-            <option value="">Sin asignar</option>
+            <option value="" disabled>
+              Selecciona…
+            </option>
             {tecnicos.map((tecnico) => (
               <option key={tecnico} value={tecnico}>
                 {tecnico}
