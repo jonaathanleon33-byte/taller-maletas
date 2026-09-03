@@ -6,10 +6,12 @@ import { OrdenCard } from "@/components/OrdenCard";
 import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
 import { FiltroFechaEntrega } from "@/components/FiltroFechaEntrega";
+import { ContadorEstados } from "@/components/ContadorEstados";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
 import { formatFecha } from "@/lib/format";
+import { estaAtrasada } from "@/lib/estado";
 import type { ComprobanteItem, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
 
@@ -74,6 +76,29 @@ export default async function Home({
       error = queryError.message;
     } else {
       ordenes = data ?? [];
+    }
+  }
+
+  // Contador por estado para el panel de arriba: siempre sobre el
+  // total de órdenes, sin importar el buscador o el filtro de fecha
+  // activos, para que sea un vistazo general y estable del taller.
+  const contadores = { recibidas: 0, listas: 0, entregadas: 0, atrasadas: 0 };
+  if (!missingEnv) {
+    const supabase = await createClient();
+    const { data: todas } = await supabase
+      .from("ordenes")
+      .select("estado, fecha_recibido");
+
+    for (const o of todas ?? []) {
+      if (estaAtrasada(o)) {
+        contadores.atrasadas++;
+      } else if (o.estado === "recibida") {
+        contadores.recibidas++;
+      } else if (o.estado === "lista") {
+        contadores.listas++;
+      } else if (o.estado === "entregada") {
+        contadores.entregadas++;
+      }
     }
   }
 
@@ -200,6 +225,15 @@ export default async function Home({
             Venta directa
           </Link>
         </div>
+
+        {!missingEnv && !error ? (
+          <ContadorEstados
+            recibidas={contadores.recibidas}
+            listas={contadores.listas}
+            entregadas={contadores.entregadas}
+            atrasadas={contadores.atrasadas}
+          />
+        ) : null}
 
         <div className="mb-2">
           <Suspense fallback={null}>
