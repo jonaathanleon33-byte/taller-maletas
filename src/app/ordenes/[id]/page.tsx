@@ -6,10 +6,12 @@ import { CambiarEstadoForm } from "@/components/CambiarEstadoForm";
 import { EliminarOrdenButton } from "@/components/EliminarOrdenButton";
 import { InfoRow } from "@/components/InfoRow";
 import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
+import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADO_LABELS,
   TAMANO_LABELS,
+  TECNICOS,
   TIPO_LABELS,
   linkWhatsapp,
   mensajeWhatsapp,
@@ -87,9 +89,11 @@ export default async function OrdenDetallePage({
               {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
             </InfoRow>
             <InfoRow label="Ubicación">{orden.ubicacion}</InfoRow>
-            <InfoRow label="Técnico asignado">
-              {orden.tecnico_asignado || "—"}
-            </InfoRow>
+            <TecnicoAsignadoRow
+              ordenId={orden.id}
+              tecnico={orden.tecnico_asignado}
+              tecnicos={TECNICOS}
+            />
             <InfoRow label="Recibida">
               {formatFechaHora(orden.fecha_recibido)}
             </InfoRow>

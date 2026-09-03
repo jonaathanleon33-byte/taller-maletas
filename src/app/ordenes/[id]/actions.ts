@@ -50,6 +50,20 @@ export async function actualizarTelefonoOrden(
   revalidatePath("/");
 }
 
+export async function actualizarTecnicoOrden(
+  ordenId: string,
+  tecnico: string,
+) {
+  const supabase = await createClient();
+  await supabase
+    .from("ordenes")
+    .update({ tecnico_asignado: tecnico.trim() || null })
+    .eq("id", ordenId);
+
+  revalidatePath(`/ordenes/${ordenId}`);
+  revalidatePath("/");
+}
+
 export type EliminarOrdenState = { error: string } | null;
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- required by useActionState's (prevState, formData) signature */
