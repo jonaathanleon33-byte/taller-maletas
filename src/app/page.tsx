@@ -43,7 +43,7 @@ async function buscarOrdenes(q: string | undefined, fecha: string | undefined) {
   if (q) {
     const term = q.trim();
     query = query.or(
-      `numero_recibo.ilike.%${term}%,cliente_nombre.ilike.%${term}%,cliente_telefono.ilike.%${term}%`,
+      `numero_recibo.ilike.%${term}%,cliente_nombre.ilike.%${term}%,cliente_telefono.ilike.%${term}%,dano_descripcion.ilike.%${term}%`,
     );
   }
 
@@ -238,7 +238,7 @@ export default async function Home({
               {fecha
                 ? "Probá con otra fecha o quitá el filtro."
                 : q
-                  ? "Probá con otro número de recibo, nombre o teléfono."
+                  ? "Probá con otro número de recibo, nombre, teléfono o servicio."
                   : "Crea la primera con el botón “Nueva”."}
             </p>
           </div>

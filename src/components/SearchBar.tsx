@@ -55,7 +55,7 @@ export function SearchBar() {
         inputMode="search"
         value={value}
         onChange={(e) => handleChange(e.target.value)}
-        placeholder="Buscar por recibo, cliente o teléfono"
+        placeholder="Buscar por recibo, cliente, teléfono o servicio"
         className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none"
       />
     </div>
