@@ -77,11 +77,11 @@ async function buscarOrdenes(
   }
 
   if (filtro === "atrasada") {
-    query = query.neq("estado", "entregada").lte("fecha_recibido", cutoffAtrasada());
-  } else if (filtro === "recibida" || filtro === "lista") {
-    query = query.eq("estado", filtro).gt("fecha_recibido", cutoffAtrasada());
-  } else if (filtro === "entregada") {
-    query = query.eq("estado", "entregada");
+    query = query.eq("estado", "recibida").lte("fecha_recibido", cutoffAtrasada());
+  } else if (filtro === "recibida") {
+    query = query.eq("estado", "recibida").gt("fecha_recibido", cutoffAtrasada());
+  } else if (filtro === "lista" || filtro === "entregada") {
+    query = query.eq("estado", filtro);
   }
 
   if (q) {

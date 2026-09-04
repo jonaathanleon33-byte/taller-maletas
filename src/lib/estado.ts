@@ -53,8 +53,13 @@ export function diasSinEntregar(orden: Pick<Orden, "fecha_recibido" | "estado">)
   return Math.floor((ahora - recibido) / (1000 * 60 * 60 * 24));
 }
 
+// Solo cuenta como atrasada mientras sigue "recibida" (todavía sin
+// empezar/terminar el arreglo). Una vez que pasa a "lista" ya se hizo
+// el trabajo a tiempo o no, pero deja de ser una alerta de "hay que
+// atenderla" — por eso no se marca atrasada aunque lleve muchos días
+// esperando a que el cliente la retire.
 export function estaAtrasada(orden: Pick<Orden, "fecha_recibido" | "estado">) {
-  return orden.estado !== "entregada" && diasSinEntregar(orden) > DIAS_ALERTA;
+  return orden.estado === "recibida" && diasSinEntregar(orden) > DIAS_ALERTA;
 }
 
 type EstadoColor = "verde" | "amarillo" | "azul" | "rojo" | "gris";
