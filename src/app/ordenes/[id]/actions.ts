@@ -64,6 +64,54 @@ export async function actualizarTecnicoOrden(
   revalidatePath("/");
 }
 
+export type EntregarYCobrarState = { error: string } | null;
+
+// Une en un solo paso lo que antes eran tres: marcar el comprobante
+// como pagado, pasar la orden a "entregada" y (desde el botón) abrir
+// WhatsApp con la factura — para el momento en que el cliente viene,
+// paga y se lleva la maleta.
+export async function entregarYCobrar(
+  ordenId: string,
+  comprobanteId: string,
+): Promise<EntregarYCobrarState> {
+  const supabase = await createClient();
+
+  const { data: comprobante } = await supabase
+    .from("comprobantes")
+    .select("atendido_por")
+    .eq("id", comprobanteId)
+    .single();
+
+  if (!comprobante?.atendido_por) {
+    return {
+      error: "Primero elige quién atendió en la factura de esta orden.",
+    };
+  }
+
+  const { error: errorComprobante } = await supabase
+    .from("comprobantes")
+    .update({ pagado: true })
+    .eq("id", comprobanteId);
+
+  if (errorComprobante) {
+    return { error: errorComprobante.message };
+  }
+
+  const { error: errorOrden } = await supabase
+    .from("ordenes")
+    .update({ estado: "entregada" })
+    .eq("id", ordenId);
+
+  if (errorOrden) {
+    return { error: errorOrden.message };
+  }
+
+  revalidatePath(`/ordenes/${ordenId}`);
+  revalidatePath(`/ordenes/${ordenId}/comprobante`);
+  revalidatePath("/");
+  return null;
+}
+
 export type EliminarOrdenState = { error: string } | null;
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- required by useActionState's (prevState, formData) signature */

@@ -7,6 +7,7 @@ import { EliminarOrdenButton } from "@/components/EliminarOrdenButton";
 import { InfoRow } from "@/components/InfoRow";
 import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
+import { EntregarYCobrarButton } from "@/components/EntregarYCobrarButton";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADO_LABELS,
@@ -170,6 +171,10 @@ export default async function OrdenDetallePage({
             )}
           </span>
         </Link>
+
+        {comprobante && comprobanteTotal && comprobanteTotal > 0 && orden.estado !== "entregada" ? (
+          <EntregarYCobrarButton ordenId={orden.id} comprobanteId={comprobante.id} />
+        ) : null}
 
         <Link
           href={`/ordenes/${orden.id}/etiqueta`}
