@@ -18,6 +18,20 @@ export function OrdenCardGrupo({
 }) {
   const primera = ordenes[0];
 
+  const resumenes = ordenes
+    .map((orden) => resumenPorOrden.get(orden.id))
+    .filter((r): r is ComprobanteResumen => Boolean(r));
+
+  const resumenGeneral: ComprobanteResumen | null =
+    resumenes.length > 0
+      ? {
+          total: resumenes.reduce((acc, r) => acc + r.total, 0),
+          abono: resumenes.reduce((acc, r) => acc + r.abono, 0),
+          saldoPendiente: resumenes.reduce((acc, r) => acc + r.saldoPendiente, 0),
+          pagado: resumenes.every((r) => r.pagado),
+        }
+      : null;
+
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
@@ -66,6 +80,15 @@ export function OrdenCardGrupo({
           );
         })}
       </ul>
+
+      {resumenGeneral ? (
+        <div className="mt-3 border-t border-slate-200 pt-2">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Total factura
+          </p>
+          <ResumenPago resumen={resumenGeneral} />
+        </div>
+      ) : null}
     </div>
   );
 }
