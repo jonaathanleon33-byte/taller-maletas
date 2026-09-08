@@ -222,21 +222,6 @@ export default async function Home({
             >
               Precios
             </Link>
-            <Link
-              href="/logout"
-              aria-label="Cerrar sesión"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-500 active:bg-slate-100"
-            >
-              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-                <path
-                  d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
           </div>
         }
       />
