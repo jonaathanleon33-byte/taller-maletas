@@ -92,6 +92,15 @@ export default async function ImprimirComprobantePage({
   const nombre = orden.cliente_nombre.split(" ")[0];
   const mensaje = `Hola ${nombre}, aquí tienes tu recibo #${orden.numero_recibo}. Total: ${formatMoney(total)}.`;
 
+  // Si ya se entregó (el cliente puede pasar antes o después de la
+  // fecha prometida), mostramos la fecha real de entrega en vez de la
+  // prometida.
+  const fechaEntregaMostrada = orden.fecha_entregada
+    ? formatFecha(orden.fecha_entregada)
+    : orden.fecha_prometida
+      ? formatFecha(orden.fecha_prometida)
+      : undefined;
+
   return (
     <div className="flex flex-1 flex-col items-center gap-4 bg-slate-100 px-4 py-6 print:bg-white print:py-0">
       {/* Esta factura se imprime en la impresora de 80mm — distinta de
@@ -117,7 +126,7 @@ export default async function ImprimirComprobantePage({
           clienteNombre={orden.cliente_nombre}
           clienteTelefono={orden.cliente_telefono}
           maletas={maletas}
-          fechaEntrega={orden.fecha_prometida ? formatFecha(orden.fecha_prometida) : undefined}
+          fechaEntrega={fechaEntregaMostrada}
         />
       </div>
 
@@ -145,7 +154,7 @@ export default async function ImprimirComprobantePage({
           clienteNombre={orden.cliente_nombre}
           clienteTelefono={orden.cliente_telefono}
           maletas={maletas}
-          fechaEntrega={orden.fecha_prometida ? formatFecha(orden.fecha_prometida) : undefined}
+          fechaEntrega={fechaEntregaMostrada}
         />
       </div>
 
