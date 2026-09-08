@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { actualizarEstadoEnSheets } from "@/lib/google-sheets";
 import type { Estado } from "@/types/database";
 
 export type CambiarEstadoState = { error: string } | null;
@@ -19,13 +20,19 @@ export async function cambiarEstado(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data: orden, error } = await supabase
     .from("ordenes")
     .update({ estado })
-    .eq("id", ordenId);
+    .eq("id", ordenId)
+    .select("numero_recibo")
+    .single();
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (orden) {
+    await actualizarEstadoEnSheets(orden.numero_recibo, estado);
   }
 
   revalidatePath(`/ordenes/${ordenId}`);
@@ -97,13 +104,19 @@ export async function entregarYCobrar(
     return { error: errorComprobante.message };
   }
 
-  const { error: errorOrden } = await supabase
+  const { data: orden, error: errorOrden } = await supabase
     .from("ordenes")
     .update({ estado: "entregada" })
-    .eq("id", ordenId);
+    .eq("id", ordenId)
+    .select("numero_recibo")
+    .single();
 
   if (errorOrden) {
     return { error: errorOrden.message };
+  }
+
+  if (orden) {
+    await actualizarEstadoEnSheets(orden.numero_recibo, "entregada");
   }
 
   revalidatePath(`/ordenes/${ordenId}`);

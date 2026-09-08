@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import { ESTADO_LABELS, TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
 import { formatFecha, formatFechaHora } from "@/lib/format";
-import type { Orden } from "@/types/database";
+import type { Estado, Orden } from "@/types/database";
 
 const SHEET_NAME = "Ordenes";
 
@@ -72,11 +72,28 @@ export async function exportarOrdenASheets(orden: Orden) {
 }
 
 const COLUMNA_PRECIO = "N";
+const COLUMNA_ESTADO = "K";
 
-// El precio del arreglo no se conoce hasta que se arman los ítems del
-// comprobante, así que en vez de agregar otra fila buscamos la fila
-// ya creada para ese recibo (por número de recibo, columna A) y
-// actualizamos solo la celda del precio.
+// Ambas funciones de abajo actualizan una celda de una fila ya
+// creada (por eso no se conocía el valor al exportar la orden por
+// primera vez), buscando la fila por número de recibo en la columna A.
+async function buscarFilaPorRecibo(
+  sheets: ReturnType<typeof google.sheets>,
+  sheetId: string,
+  numeroRecibo: string,
+) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `${SHEET_NAME}!A:A`,
+  });
+
+  const filas = res.data.values ?? [];
+  const indice = filas.findIndex(
+    (fila) => String(fila[0] ?? "") === String(numeroRecibo),
+  );
+  return indice === -1 ? null : indice + 1;
+}
+
 export async function actualizarPrecioEnSheets(
   numeroRecibo: string,
   precio: number,
@@ -91,18 +108,9 @@ export async function actualizarPrecioEnSheets(
 
   try {
     const sheets = google.sheets({ version: "v4", auth });
-    const res = await sheets.spreadsheets.values.get({
-      spreadsheetId: sheetId,
-      range: `${SHEET_NAME}!A:A`,
-    });
+    const numeroFila = await buscarFilaPorRecibo(sheets, sheetId, numeroRecibo);
+    if (!numeroFila) return;
 
-    const filas = res.data.values ?? [];
-    const indice = filas.findIndex(
-      (fila) => String(fila[0] ?? "") === String(numeroRecibo),
-    );
-    if (indice === -1) return;
-
-    const numeroFila = indice + 1;
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!${COLUMNA_PRECIO}${numeroFila}`,
@@ -111,5 +119,37 @@ export async function actualizarPrecioEnSheets(
     });
   } catch (err) {
     console.error("No se pudo actualizar el precio en Google Sheets:", err);
+  }
+}
+
+// El estado cambia varias veces durante la vida de la orden
+// (recibida → lista → entregada) y hasta ahora el Sheet se quedaba
+// con el valor de cuando se creó — esto lo mantiene al día en cada
+// cambio, sea desde el selector manual o desde "Entregar y cobrar".
+export async function actualizarEstadoEnSheets(
+  numeroRecibo: string,
+  estado: Estado,
+) {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const auth = getAuth();
+
+  if (!sheetId || !auth) {
+    warnFaltanVariables("actualización de estado");
+    return;
+  }
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const numeroFila = await buscarFilaPorRecibo(sheets, sheetId, numeroRecibo);
+    if (!numeroFila) return;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!${COLUMNA_ESTADO}${numeroFila}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [[ESTADO_LABELS[estado]]] },
+    });
+  } catch (err) {
+    console.error("No se pudo actualizar el estado en Google Sheets:", err);
   }
 }
