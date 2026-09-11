@@ -21,19 +21,10 @@ async function sincronizarPrecioSheets(comprobanteId: string) {
 
   if (!comprobante?.orden_id) return;
 
-  const [{ data: orden }, { data: items }] = await Promise.all([
-    supabase
-      .from("ordenes")
-      .select("numero_recibo")
-      .eq("id", comprobante.orden_id)
-      .maybeSingle(),
-    supabase
-      .from("comprobante_items")
-      .select("precio_unitario, cantidad, descuento_pct")
-      .eq("comprobante_id", comprobanteId),
-  ]);
-
-  if (!orden) return;
+  const { data: items } = await supabase
+    .from("comprobante_items")
+    .select("precio_unitario, cantidad, descuento_pct")
+    .eq("comprobante_id", comprobanteId);
 
   const { total } = calcularTotales(
     items ?? [],
@@ -41,7 +32,7 @@ async function sincronizarPrecioSheets(comprobanteId: string) {
     comprobante.impuestos,
   );
 
-  await actualizarPrecioEnSheets(orden.numero_recibo, total);
+  await actualizarPrecioEnSheets(comprobante.orden_id, total);
 }
 
 export type AgregarItemState = { error: string } | null;

@@ -26,6 +26,15 @@ function warnFaltanVariables(contexto: string) {
   });
 }
 
+// El número de recibo NO es único por fila: cuando un cliente deja
+// varias maletas en una sola visita, todas comparten el mismo número
+// y cada una es su propia fila. Por eso cada fila también guarda el
+// id interno de la orden en una columna aparte (fuera de lo que el
+// taller necesita ver) — así las actualizaciones posteriores
+// (precio, estado) siempre pegan en la fila correcta, no en la
+// primera que comparte número de recibo.
+const COLUMNA_ID = "O";
+
 export async function exportarOrdenASheets(orden: Orden) {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   const auth = getAuth();
@@ -62,6 +71,7 @@ export async function exportarOrdenASheets(orden: Orden) {
             // comprobante se llena después), se actualiza más
             // adelante con actualizarPrecioEnSheets.
             0,
+            orden.id,
           ],
         ],
       },
@@ -74,30 +84,22 @@ export async function exportarOrdenASheets(orden: Orden) {
 const COLUMNA_PRECIO = "N";
 const COLUMNA_ESTADO = "K";
 
-// Ambas funciones de abajo actualizan una celda de una fila ya
-// creada (por eso no se conocía el valor al exportar la orden por
-// primera vez), buscando la fila por número de recibo en la columna A.
-async function buscarFilaPorRecibo(
+async function buscarFilaPorOrdenId(
   sheets: ReturnType<typeof google.sheets>,
   sheetId: string,
-  numeroRecibo: string,
+  ordenId: string,
 ) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: `${SHEET_NAME}!A:A`,
+    range: `${SHEET_NAME}!${COLUMNA_ID}:${COLUMNA_ID}`,
   });
 
   const filas = res.data.values ?? [];
-  const indice = filas.findIndex(
-    (fila) => String(fila[0] ?? "") === String(numeroRecibo),
-  );
+  const indice = filas.findIndex((fila) => String(fila[0] ?? "") === ordenId);
   return indice === -1 ? null : indice + 1;
 }
 
-export async function actualizarPrecioEnSheets(
-  numeroRecibo: string,
-  precio: number,
-) {
+export async function actualizarPrecioEnSheets(ordenId: string, precio: number) {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   const auth = getAuth();
 
@@ -108,7 +110,7 @@ export async function actualizarPrecioEnSheets(
 
   try {
     const sheets = google.sheets({ version: "v4", auth });
-    const numeroFila = await buscarFilaPorRecibo(sheets, sheetId, numeroRecibo);
+    const numeroFila = await buscarFilaPorOrdenId(sheets, sheetId, ordenId);
     if (!numeroFila) return;
 
     await sheets.spreadsheets.values.update({
@@ -126,10 +128,7 @@ export async function actualizarPrecioEnSheets(
 // (recibida → lista → entregada) y hasta ahora el Sheet se quedaba
 // con el valor de cuando se creó — esto lo mantiene al día en cada
 // cambio, sea desde el selector manual o desde "Entregar y cobrar".
-export async function actualizarEstadoEnSheets(
-  numeroRecibo: string,
-  estado: Estado,
-) {
+export async function actualizarEstadoEnSheets(ordenId: string, estado: Estado) {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   const auth = getAuth();
 
@@ -140,7 +139,7 @@ export async function actualizarEstadoEnSheets(
 
   try {
     const sheets = google.sheets({ version: "v4", auth });
-    const numeroFila = await buscarFilaPorRecibo(sheets, sheetId, numeroRecibo);
+    const numeroFila = await buscarFilaPorOrdenId(sheets, sheetId, ordenId);
     if (!numeroFila) return;
 
     await sheets.spreadsheets.values.update({

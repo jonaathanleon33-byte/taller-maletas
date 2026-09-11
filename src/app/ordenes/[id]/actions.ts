@@ -20,20 +20,16 @@ export async function cambiarEstado(
   }
 
   const supabase = await createClient();
-  const { data: orden, error } = await supabase
+  const { error } = await supabase
     .from("ordenes")
     .update({ estado })
-    .eq("id", ordenId)
-    .select("numero_recibo")
-    .single();
+    .eq("id", ordenId);
 
   if (error) {
     return { error: error.message };
   }
 
-  if (orden) {
-    await actualizarEstadoEnSheets(orden.numero_recibo, estado);
-  }
+  await actualizarEstadoEnSheets(ordenId, estado);
 
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
@@ -104,20 +100,16 @@ export async function entregarYCobrar(
     return { error: errorComprobante.message };
   }
 
-  const { data: orden, error: errorOrden } = await supabase
+  const { error: errorOrden } = await supabase
     .from("ordenes")
     .update({ estado: "entregada" })
-    .eq("id", ordenId)
-    .select("numero_recibo")
-    .single();
+    .eq("id", ordenId);
 
   if (errorOrden) {
     return { error: errorOrden.message };
   }
 
-  if (orden) {
-    await actualizarEstadoEnSheets(orden.numero_recibo, "entregada");
-  }
+  await actualizarEstadoEnSheets(ordenId, "entregada");
 
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath(`/ordenes/${ordenId}/comprobante`);
