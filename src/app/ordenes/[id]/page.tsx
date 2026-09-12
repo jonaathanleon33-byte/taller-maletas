@@ -70,7 +70,11 @@ export default async function OrdenDetallePage({
 
   return (
     <div className="flex flex-1 flex-col">
-      <AppHeader title={`Recibo #${orden.numero_recibo}`} backHref="/" />
+      <AppHeader
+        title={`Recibo #${orden.numero_recibo}`}
+        backHref="/"
+        backToHistory
+      />
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4 pb-10">
         <section className="rounded-lg border border-slate-200 bg-white p-4">
