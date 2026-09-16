@@ -24,10 +24,12 @@ export function ComprobanteConfigForm({
   path,
   comprobante,
   tecnicos,
+  recibidoPor,
 }: {
   path: string;
   comprobante: Comprobante;
   tecnicos: string[];
+  recibidoPor?: string | null;
 }) {
   const action = actualizarComprobante.bind(
     null,
@@ -72,7 +74,7 @@ export function ComprobanteConfigForm({
             id="atendido_por"
             name="atendido_por"
             required
-            defaultValue={comprobante.atendido_por ?? ""}
+            defaultValue={comprobante.atendido_por ?? recibidoPor ?? ""}
             className={inputClass}
           >
             <option value="" disabled>

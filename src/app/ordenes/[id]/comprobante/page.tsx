@@ -68,6 +68,7 @@ export default async function ComprobantePage({
               items={items ?? []}
               servicios={servicios ?? []}
               tecnicos={TECNICOS}
+              recibidoPor={orden.recibido_por}
             />
             <div className="flex gap-2">
               <Link
