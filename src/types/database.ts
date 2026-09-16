@@ -21,7 +21,7 @@ export type Orden = {
   tamano: Tamano;
   tipo: TipoMaleta;
   dano_descripcion: string;
-  ubicacion: string;
+  ubicacion: string | null;
   tecnico_asignado: string | null;
   recibido_por: string | null;
   estado: Estado;
@@ -49,11 +49,18 @@ export type HistorialEstado = {
 
 export type OrdenInsert = Omit<
   Orden,
-  "id" | "created_at" | "updated_at" | "estado" | "fecha_entregada" | "numero_recibo"
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "estado"
+  | "fecha_entregada"
+  | "numero_recibo"
+  | "ubicacion"
 > & {
   estado?: Estado;
   fecha_entregada?: string | null;
   numero_recibo?: string;
+  ubicacion?: string | null;
 };
 
 export type MetodoPago =

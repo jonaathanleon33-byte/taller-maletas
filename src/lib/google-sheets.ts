@@ -62,7 +62,7 @@ export async function exportarOrdenASheets(orden: Orden) {
             TAMANO_LABELS[orden.tamano],
             TIPO_LABELS[orden.tipo],
             orden.dano_descripcion,
-            orden.ubicacion,
+            orden.ubicacion ?? "",
             orden.tecnico_asignado ?? "",
             ESTADO_LABELS[orden.estado],
             formatFechaHora(orden.fecha_recibido),

@@ -335,19 +335,6 @@ export function NuevaOrdenForm({
         </h2>
 
         <div>
-          <label className={labelClass} htmlFor="ubicacion">
-            Ubicación en el taller *
-          </label>
-          <input
-            id="ubicacion"
-            name="ubicacion"
-            required
-            className={inputClass}
-            placeholder="Ej: Estante A3"
-          />
-        </div>
-
-        <div>
           <label className={labelClass} htmlFor="recibido_por">
             Recibido por
           </label>

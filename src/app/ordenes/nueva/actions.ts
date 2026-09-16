@@ -24,7 +24,6 @@ export async function crearOrden(
   const tamano = campoRequerido(formData, "tamano") as Tamano;
   const tipo = campoRequerido(formData, "tipo") as TipoMaleta;
   const dano_descripcion = capitalizarPrimera(campoRequerido(formData, "dano_descripcion"));
-  const ubicacion = capitalizarPrimera(campoRequerido(formData, "ubicacion"));
   const tecnico_asignado = campoRequerido(formData, "tecnico_asignado") || null;
   const recibido_por = campoRequerido(formData, "recibido_por") || null;
   const estado = (campoRequerido(formData, "estado") || "recibida") as Estado;
@@ -38,8 +37,7 @@ export async function crearOrden(
     !color ||
     !tamano ||
     !tipo ||
-    !dano_descripcion ||
-    !ubicacion
+    !dano_descripcion
   ) {
     return { error: "Completa todos los campos obligatorios." };
   }
@@ -69,7 +67,6 @@ export async function crearOrden(
       tamano,
       tipo,
       dano_descripcion,
-      ubicacion,
       tecnico_asignado,
       recibido_por,
       estado,

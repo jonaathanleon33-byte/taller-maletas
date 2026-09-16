@@ -93,7 +93,9 @@ export default async function OrdenDetallePage({
             <InfoRow label="Tamaño / tipo">
               {TAMANO_LABELS[orden.tamano]} · {TIPO_LABELS[orden.tipo]}
             </InfoRow>
-            <InfoRow label="Ubicación">{orden.ubicacion}</InfoRow>
+            {orden.ubicacion ? (
+              <InfoRow label="Ubicación">{orden.ubicacion}</InfoRow>
+            ) : null}
             <InfoRow label="Recibido por">{orden.recibido_por || "—"}</InfoRow>
             <TecnicoAsignadoRow
               ordenId={orden.id}
