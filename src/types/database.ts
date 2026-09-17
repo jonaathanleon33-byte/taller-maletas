@@ -9,7 +9,7 @@ export type TipoMaleta =
   | "cartera"
   | "morral_ruedas"
   | "tula";
-export type Estado = "recibida" | "lista" | "entregada";
+export type Estado = "recibida" | "lista" | "entregada" | "entregada_sin_reparar";
 
 export type Orden = {
   id: string;

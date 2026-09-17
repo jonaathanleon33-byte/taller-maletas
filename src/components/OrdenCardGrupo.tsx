@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { Orden } from "@/types/database";
 import {
+  ESTADO_LABELS,
   TAMANO_LABELS,
   TIPO_LABELS,
   diasSinEntregar,
+  esEntregada,
   getEstadoClasses,
 } from "@/lib/estado";
 import { EstadoBadge } from "@/components/EstadoBadge";
@@ -67,8 +69,8 @@ export function OrdenCardGrupo({
                       {orden.dano_descripcion}
                     </p>
                     <p className="text-xs text-slate-400">
-                      {orden.estado === "entregada"
-                        ? "Entregada"
+                      {esEntregada(orden.estado)
+                        ? ESTADO_LABELS[orden.estado]
                         : `${dias} ${dias === 1 ? "día" : "días"} sin entregar`}
                     </p>
                   </div>

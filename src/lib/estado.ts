@@ -1,6 +1,11 @@
 import type { Estado, Orden, Tamano, TipoMaleta } from "@/types/database";
 
-export const ESTADOS: Estado[] = ["recibida", "lista", "entregada"];
+export const ESTADOS: Estado[] = [
+  "recibida",
+  "lista",
+  "entregada",
+  "entregada_sin_reparar",
+];
 
 // Lista fija de técnicos/encargados: no se saca de ninguna fuente
 // editable (antes venía de los nombres de las pestañas del Google
@@ -24,6 +29,7 @@ export const ESTADO_LABELS: Record<Estado, string> = {
   recibida: "Recibida",
   lista: "Lista",
   entregada: "Entregada",
+  entregada_sin_reparar: "Entregada sin reparar",
 };
 
 export const TAMANO_LABELS: Record<Tamano, string> = {
@@ -46,8 +52,14 @@ export const TIPO_LABELS: Record<TipoMaleta, string> = {
 
 export const DIAS_ALERTA = 3;
 
+// "entregada" y "entregada sin reparar" son los dos estados finales:
+// la maleta ya salió del taller en ambos casos, se haya reparado o no.
+export function esEntregada(estado: Estado) {
+  return estado === "entregada" || estado === "entregada_sin_reparar";
+}
+
 export function diasSinEntregar(orden: Pick<Orden, "fecha_recibido" | "estado">) {
-  if (orden.estado === "entregada") return 0;
+  if (esEntregada(orden.estado)) return 0;
   const recibido = new Date(orden.fecha_recibido).getTime();
   const ahora = Date.now();
   return Math.floor((ahora - recibido) / (1000 * 60 * 60 * 24));
@@ -96,6 +108,7 @@ const ESTADO_COLOR: Record<Estado, EstadoColor> = {
   recibida: "amarillo",
   lista: "verde",
   entregada: "azul",
+  entregada_sin_reparar: "gris",
 };
 
 export function getEstadoColor(orden: Pick<Orden, "estado" | "fecha_recibido">): EstadoColor {
@@ -122,6 +135,8 @@ export function mensajeWhatsapp(orden: Pick<Orden, "cliente_nombre" | "numero_re
       return `Hola ${nombre}, ¡buenas noticias! Tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar. Te esperamos en nuestro centro técnico.`;
     case "entregada":
       return `Hola ${nombre}, gracias por retirar tu maleta ${maleta} (recibo #${orden.numero_recibo}). ¡Cualquier consulta estamos a disposición!`;
+    case "entregada_sin_reparar":
+      return `Hola ${nombre}, confirmamos la entrega de tu maleta ${maleta} (recibo #${orden.numero_recibo}) sin realizar la reparación. ¡Cualquier consulta estamos a disposición!`;
     default:
       return `Hola ${nombre}, te escribimos por tu maleta ${maleta} (recibo #${orden.numero_recibo}).`;
   }

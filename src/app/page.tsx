@@ -15,12 +15,18 @@ import { DIAS_ALERTA, estaAtrasada } from "@/lib/estado";
 import type { ComprobanteItem, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
 
-type Filtro = "recibida" | "lista" | "entregada" | "atrasada";
+type Filtro =
+  | "recibida"
+  | "lista"
+  | "entregada"
+  | "entregada_sin_reparar"
+  | "atrasada";
 
 const FILTRO_LABELS: Record<Filtro, string> = {
   recibida: "Recibidas",
   lista: "Listas",
   entregada: "Entregadas",
+  entregada_sin_reparar: "Entregadas sin reparar",
   atrasada: "Atrasadas",
 };
 
@@ -29,6 +35,7 @@ function esFiltroValido(valor: string | undefined): valor is Filtro {
     valor === "recibida" ||
     valor === "lista" ||
     valor === "entregada" ||
+    valor === "entregada_sin_reparar" ||
     valor === "atrasada"
   );
 }
@@ -80,7 +87,11 @@ async function buscarOrdenes(
     query = query.eq("estado", "recibida").lte("fecha_recibido", cutoffAtrasada());
   } else if (filtro === "recibida") {
     query = query.eq("estado", "recibida").gt("fecha_recibido", cutoffAtrasada());
-  } else if (filtro === "lista" || filtro === "entregada") {
+  } else if (
+    filtro === "lista" ||
+    filtro === "entregada" ||
+    filtro === "entregada_sin_reparar"
+  ) {
     query = query.eq("estado", filtro);
   }
 
@@ -125,7 +136,13 @@ export default async function Home({
   // Contador por estado para el panel de arriba: siempre sobre el
   // total de órdenes, sin importar el buscador o el filtro de fecha
   // activos, para que sea un vistazo general y estable del taller.
-  const contadores = { recibidas: 0, listas: 0, entregadas: 0, atrasadas: 0 };
+  const contadores = {
+    recibidas: 0,
+    listas: 0,
+    entregadas: 0,
+    entregadasSinReparar: 0,
+    atrasadas: 0,
+  };
   if (!missingEnv) {
     const supabase = await createClient();
     const { data: todas } = await supabase
@@ -141,6 +158,8 @@ export default async function Home({
         contadores.listas++;
       } else if (o.estado === "entregada") {
         contadores.entregadas++;
+      } else if (o.estado === "entregada_sin_reparar") {
+        contadores.entregadasSinReparar++;
       }
     }
   }
@@ -274,6 +293,7 @@ export default async function Home({
             recibidas={contadores.recibidas}
             listas={contadores.listas}
             entregadas={contadores.entregadas}
+            entregadasSinReparar={contadores.entregadasSinReparar}
             atrasadas={contadores.atrasadas}
             filtroActivo={filtro}
           />

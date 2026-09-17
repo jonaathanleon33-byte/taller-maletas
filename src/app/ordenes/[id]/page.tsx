@@ -14,6 +14,7 @@ import {
   TAMANO_LABELS,
   TECNICOS,
   TIPO_LABELS,
+  esEntregada,
   linkWhatsapp,
   mensajeWhatsapp,
 } from "@/lib/estado";
@@ -178,7 +179,7 @@ export default async function OrdenDetallePage({
           </span>
         </Link>
 
-        {comprobante && comprobanteTotal && comprobanteTotal > 0 && orden.estado !== "entregada" ? (
+        {comprobante && comprobanteTotal && comprobanteTotal > 0 && !esEntregada(orden.estado) ? (
           <EntregarYCobrarButton ordenId={orden.id} comprobanteId={comprobante.id} />
         ) : null}
 

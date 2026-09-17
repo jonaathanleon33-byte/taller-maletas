@@ -5,7 +5,7 @@ import {
   crearOrden,
   type CrearOrdenState,
 } from "@/app/ordenes/nueva/actions";
-import { ESTADOS, TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
+import { ESTADOS, TAMANO_LABELS, TIPO_LABELS, esEntregada } from "@/lib/estado";
 import { EstadoSelect } from "@/components/EstadoSelect";
 import { comprimirImagen } from "@/lib/comprimir-imagen";
 import type { Cliente } from "@/lib/clientes";
@@ -379,7 +379,7 @@ export function NuevaOrdenForm({
           <EstadoSelect
             name="estado"
             defaultValue="recibida"
-            options={ESTADOS.filter((e) => e !== "entregada")}
+            options={ESTADOS.filter((e) => !esEntregada(e))}
           />
         </div>
 

@@ -4,21 +4,29 @@ const ITEM_CLASSES = {
   amarillo: "bg-amber-100 text-amber-800",
   verde: "bg-emerald-100 text-emerald-800",
   azul: "bg-blue-100 text-blue-800",
+  gris: "bg-slate-200 text-slate-700",
   rojo: "bg-red-100 text-red-800",
 } as const;
 
-type FiltroEstado = "recibida" | "lista" | "entregada" | "atrasada";
+type FiltroEstado =
+  | "recibida"
+  | "lista"
+  | "entregada"
+  | "entregada_sin_reparar"
+  | "atrasada";
 
 export function ContadorEstados({
   recibidas,
   listas,
   entregadas,
+  entregadasSinReparar,
   atrasadas,
   filtroActivo,
 }: {
   recibidas: number;
   listas: number;
   entregadas: number;
+  entregadasSinReparar: number;
   atrasadas: number;
   filtroActivo?: FiltroEstado;
 }) {
@@ -31,23 +39,29 @@ export function ContadorEstados({
     { label: "Recibidas", count: recibidas, color: "amarillo", filtro: "recibida" },
     { label: "Listas", count: listas, color: "verde", filtro: "lista" },
     { label: "Entregadas", count: entregadas, color: "azul", filtro: "entregada" },
+    {
+      label: "Entreg. sin reparar",
+      count: entregadasSinReparar,
+      color: "gris",
+      filtro: "entregada_sin_reparar",
+    },
     { label: "Atrasadas", count: atrasadas, color: "rojo", filtro: "atrasada" },
   ];
 
   return (
-    <div className="mb-4 grid grid-cols-4 gap-2">
+    <div className="mb-4 grid grid-cols-5 gap-1.5">
       {items.map((item) => {
         const activo = filtroActivo === item.filtro;
         return (
           <Link
             key={item.label}
             href={activo ? "/" : `/?filtro=${item.filtro}`}
-            className={`rounded-lg p-2 text-center active:opacity-80 ${ITEM_CLASSES[item.color]} ${
+            className={`rounded-lg p-1.5 text-center active:opacity-80 ${ITEM_CLASSES[item.color]} ${
               activo ? "ring-2 ring-offset-1 ring-slate-500" : ""
             }`}
           >
-            <p className="text-lg font-bold leading-tight">{item.count}</p>
-            <p className="text-[11px] font-medium leading-tight">{item.label}</p>
+            <p className="text-base font-bold leading-tight">{item.count}</p>
+            <p className="text-[9.5px] font-medium leading-tight">{item.label}</p>
           </Link>
         );
       })}
