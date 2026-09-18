@@ -7,7 +7,7 @@ import { OrdenCardGrupo } from "@/components/OrdenCardGrupo";
 import { SearchBar } from "@/components/SearchBar";
 import { FiltroFechaEntrega } from "@/components/FiltroFechaEntrega";
 import { ContadorEstados } from "@/components/ContadorEstados";
-import { MascotaCaminando } from "@/components/MascotaCaminando";
+import { MascotasAmbiente } from "@/components/MascotasAmbiente";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
@@ -214,6 +214,8 @@ export default async function Home({
 
   return (
     <div className="flex flex-1 flex-col bg-slate-50">
+      <MascotasAmbiente />
+
       <AppHeader
         title="Taller de Maletas"
         titleIcon={
@@ -255,9 +257,7 @@ export default async function Home({
             className="h-36 w-full object-cover sm:h-44"
           />
         </div>
-      ) : (
-        <MascotaCaminando />
-      )}
+      ) : null}
 
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
         <div className="mb-4 grid grid-cols-2 gap-2">
