@@ -8,6 +8,7 @@ import { InfoRow } from "@/components/InfoRow";
 import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
 import { EntregarYCobrarButton } from "@/components/EntregarYCobrarButton";
+import { NavegacionMaletas } from "@/components/NavegacionMaletas";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADO_LABELS,
@@ -51,6 +52,12 @@ export default async function OrdenDetallePage({
     notFound();
   }
 
+  const { data: hermanas } = await supabase
+    .from("ordenes")
+    .select("id")
+    .eq("numero_recibo", orden.numero_recibo)
+    .order("created_at", { ascending: true });
+
   const { data: comprobanteItems } = comprobante
     ? await supabase
         .from("comprobante_items")
@@ -78,6 +85,8 @@ export default async function OrdenDetallePage({
       />
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4 pb-10">
+        <NavegacionMaletas ordenId={orden.id} hermanas={hermanas ?? []} />
+
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">
