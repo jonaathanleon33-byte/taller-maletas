@@ -43,7 +43,7 @@ export function OrdenCardGrupo({
           </p>
           <p className="text-sm text-slate-500">{primera.cliente_telefono}</p>
         </div>
-        <span className="shrink-0 text-sm font-medium text-slate-800">
+        <span className="shrink-0 text-base font-bold text-slate-800">
           #{primera.numero_recibo}
         </span>
       </div>

@@ -79,14 +79,15 @@ export function OrdenCard({
           </p>
           <p className="text-sm text-slate-500">{orden.cliente_telefono}</p>
         </div>
-        <EstadoBadge orden={orden} />
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="text-base font-bold text-slate-800">
+            #{orden.numero_recibo}
+          </span>
+          <EstadoBadge orden={orden} />
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
-        <span className="font-medium text-slate-800">
-          #{orden.numero_recibo}
-        </span>
-        <span>·</span>
         <span>
           {orden.marca} {orden.color}
         </span>

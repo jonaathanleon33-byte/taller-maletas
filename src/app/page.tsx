@@ -98,9 +98,18 @@ async function buscarOrdenes(
 
   if (q) {
     const term = q.trim();
-    query = query.or(
-      `numero_recibo.ilike.%${term}%,cliente_nombre.ilike.%${term}%,cliente_telefono.ilike.%${term}%,dano_descripcion.ilike.%${term}%`,
-    );
+    // Un término corto y numérico es casi siempre un número de recibo,
+    // no un teléfono (esos tienen 10 dígitos) — si lo mezclamos con la
+    // búsqueda de teléfono, un recibo como "43" termina trayendo
+    // clientes al azar cuyo celular simplemente contiene "43" en
+    // cualquier parte. En ese caso buscamos solo por recibo.
+    if (/^\d+$/.test(term) && term.length <= 6) {
+      query = query.ilike("numero_recibo", `${term}%`);
+    } else {
+      query = query.or(
+        `numero_recibo.ilike.%${term}%,cliente_nombre.ilike.%${term}%,cliente_telefono.ilike.%${term}%,dano_descripcion.ilike.%${term}%`,
+      );
+    }
   }
 
   return query;
