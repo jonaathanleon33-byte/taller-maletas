@@ -39,6 +39,7 @@ export function ReciboDigital({
   clienteTelefono,
   maletas,
   fechaEntrega,
+  entregado,
 }: {
   id?: string;
   negocio: NegocioConfig;
@@ -48,6 +49,7 @@ export function ReciboDigital({
   clienteTelefono: string;
   maletas: MaletaGrupo[];
   fechaEntrega?: string;
+  entregado?: boolean;
 }) {
   const multiples = maletas.length > 1;
   const principal = maletas[0]?.comprobante ?? null;
@@ -103,11 +105,25 @@ export function ReciboDigital({
       </div>
 
       {fechaEntrega ? (
-        <div className="mt-3 rounded-xl bg-[#fef3c7] px-4 py-2.5 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#92400e]">
-            Fecha de entrega
+        <div
+          className={`mt-3 rounded-xl px-4 py-2.5 text-center ${
+            entregado ? "bg-[#d1fae5]" : "bg-[#fef3c7]"
+          }`}
+        >
+          <p
+            className={`text-[11px] font-semibold uppercase tracking-wide ${
+              entregado ? "text-[#065f46]" : "text-[#92400e]"
+            }`}
+          >
+            {entregado ? "Entregado" : "Fecha de entrega"}
           </p>
-          <p className="text-lg font-bold text-[#92400e]">{fechaEntrega}</p>
+          <p
+            className={`text-lg font-bold ${
+              entregado ? "text-[#065f46]" : "text-[#92400e]"
+            }`}
+          >
+            {fechaEntrega}
+          </p>
         </div>
       ) : null}
 
@@ -218,7 +234,7 @@ export function ReciboDigital({
               pagado ? "bg-[#d1fae5] text-[#065f46]" : "bg-[#fef3c7] text-[#92400e]"
             }`}
           >
-            {pagado ? "Pagado" : "Pendiente"}
+            {pagado ? "Cancelado" : "Pendiente"}
           </span>
         </div>
         {abono > 0 ? (

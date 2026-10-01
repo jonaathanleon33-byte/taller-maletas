@@ -5,7 +5,7 @@ import { ReciboImprimible } from "@/components/ReciboImprimible";
 import { ReciboDigital } from "@/components/ReciboDigital";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
-import { TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
+import { TAMANO_LABELS, TIPO_LABELS, esEntregada } from "@/lib/estado";
 import { formatFecha } from "@/lib/format";
 import { calcularTotales, formatMoney } from "@/lib/money";
 import type { Comprobante, ComprobanteItem } from "@/types/database";
@@ -101,6 +101,10 @@ export default async function ImprimirComprobantePage({
       ? formatFecha(orden.fecha_prometida)
       : undefined;
 
+  // Si hay varias maletas en el recibo, solo se marca "Entregado" en
+  // el recibo cuando TODAS ya salieron del taller.
+  const entregado = ordenesDelRecibo.every((o) => esEntregada(o.estado));
+
   return (
     <div className="flex flex-1 flex-col items-center gap-4 bg-slate-100 px-4 py-6 print:bg-white print:py-0">
       {/* Esta factura se imprime en la impresora de 80mm — distinta de
@@ -127,6 +131,7 @@ export default async function ImprimirComprobantePage({
           clienteTelefono={orden.cliente_telefono}
           maletas={maletas}
           fechaEntrega={fechaEntregaMostrada}
+          entregado={entregado}
         />
       </div>
 
@@ -155,6 +160,7 @@ export default async function ImprimirComprobantePage({
           clienteTelefono={orden.cliente_telefono}
           maletas={maletas}
           fechaEntrega={fechaEntregaMostrada}
+          entregado={entregado}
         />
       </div>
 

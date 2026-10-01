@@ -30,6 +30,7 @@ export function ReciboImprimible({
   clienteTelefono,
   maletas,
   fechaEntrega,
+  entregado,
 }: {
   id?: string;
   negocio: NegocioConfig;
@@ -39,6 +40,7 @@ export function ReciboImprimible({
   clienteTelefono: string;
   maletas: MaletaGrupo[];
   fechaEntrega?: string;
+  entregado?: boolean;
 }) {
   const multiples = maletas.length > 1;
   const principal = maletas[0]?.comprobante ?? null;
@@ -86,7 +88,9 @@ export function ReciboImprimible({
         <p>{negocio.telefono}</p>
         <p>{negocio.web}</p>
         {fechaEntrega ? (
-          <p className="mt-1">Entrega {fechaEntrega}</p>
+          <p className="mt-1">
+            {entregado ? `ENTREGADO ${fechaEntrega}` : `Entrega ${fechaEntrega}`}
+          </p>
         ) : null}
       </div>
 
@@ -223,7 +227,7 @@ export function ReciboImprimible({
             return m.comprobante ? (
               <div key={i} className="flex justify-between">
                 <span>
-                  Maleta {i + 1}: {m.comprobante.pagado ? "PAGADO" : "PENDIENTE"}
+                  Maleta {i + 1}: {m.comprobante.pagado ? "CANCELADO" : "PENDIENTE"}
                 </span>
                 <span>
                   {formatMoney(m.comprobante.pagado ? totalesPorMaleta[i].total : saldoMaleta)}
@@ -242,7 +246,7 @@ export function ReciboImprimible({
         </div>
       ) : (
         <div className="flex justify-between font-bold">
-          <span>{principal?.pagado ? "PAGADO" : "PENDIENTE"}</span>
+          <span>{principal?.pagado ? "CANCELADO" : "PENDIENTE"}</span>
           <span>{formatMoney(principal?.pagado ? total : saldoPendiente)}</span>
         </div>
       )}
