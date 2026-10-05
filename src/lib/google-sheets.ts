@@ -152,3 +152,35 @@ export async function actualizarEstadoEnSheets(ordenId: string, estado: Estado) 
     console.error("No se pudo actualizar el estado en Google Sheets:", err);
   }
 }
+
+const COLUMNA_DESCRIPCION = "H";
+
+// La descripción del arreglo se puede corregir después de crear la
+// orden; esto refleja el cambio en la columna "Daño" del Sheet.
+export async function actualizarDescripcionEnSheets(
+  ordenId: string,
+  descripcion: string,
+) {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const auth = getAuth();
+
+  if (!sheetId || !auth) {
+    warnFaltanVariables("actualización de descripción");
+    return;
+  }
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const numeroFila = await buscarFilaPorOrdenId(sheets, sheetId, ordenId);
+    if (!numeroFila) return;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!${COLUMNA_DESCRIPCION}${numeroFila}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [[descripcion]] },
+    });
+  } catch (err) {
+    console.error("No se pudo actualizar la descripción en Google Sheets:", err);
+  }
+}

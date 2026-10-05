@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { actualizarEstadoEnSheets } from "@/lib/google-sheets";
+import {
+  actualizarDescripcionEnSheets,
+  actualizarEstadoEnSheets,
+} from "@/lib/google-sheets";
+import { capitalizarPrimera } from "@/lib/texto";
 import type { Estado } from "@/types/database";
 
 export type CambiarEstadoState = { error: string } | null;
@@ -65,6 +69,34 @@ export async function actualizarTecnicoOrden(
 
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
+}
+
+export type ActualizarDescripcionState = { error: string } | null;
+
+export async function actualizarDescripcionOrden(
+  ordenId: string,
+  descripcion: string,
+): Promise<ActualizarDescripcionState> {
+  const limpia = capitalizarPrimera(descripcion.trim());
+  if (!limpia) {
+    return { error: "La descripción no puede quedar vacía." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ordenes")
+    .update({ dano_descripcion: limpia })
+    .eq("id", ordenId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  await actualizarDescripcionEnSheets(ordenId, limpia);
+
+  revalidatePath(`/ordenes/${ordenId}`);
+  revalidatePath("/");
+  return null;
 }
 
 export type EntregarYCobrarState = { error: string } | null;

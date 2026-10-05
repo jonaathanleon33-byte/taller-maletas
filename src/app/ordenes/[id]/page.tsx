@@ -9,6 +9,7 @@ import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
 import { EntregarYCobrarButton } from "@/components/EntregarYCobrarButton";
 import { NavegacionMaletas } from "@/components/NavegacionMaletas";
+import { DescripcionArregloRow } from "@/components/DescripcionArregloRow";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADO_LABELS,
@@ -123,10 +124,10 @@ export default async function OrdenDetallePage({
             </InfoRow>
           </div>
 
-          <div className="mt-3 border-t border-slate-100 pt-3">
-            <p className="mb-1 text-sm text-slate-500">Descripción del arreglo</p>
-            <p className="text-sm text-slate-900">{orden.dano_descripcion}</p>
-          </div>
+          <DescripcionArregloRow
+            ordenId={orden.id}
+            descripcion={orden.dano_descripcion}
+          />
         </section>
 
         {fotos && fotos.length > 0 ? (
