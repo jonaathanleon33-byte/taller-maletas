@@ -55,9 +55,12 @@ export default async function OrdenDetallePage({
 
   const { data: hermanas } = await supabase
     .from("ordenes")
-    .select("id")
+    .select("id, estado")
     .eq("numero_recibo", orden.numero_recibo)
     .order("created_at", { ascending: true });
+
+  const maletasPendientes = (hermanas ?? []).filter((h) => !esEntregada(h.estado));
+  const hayVariasPendientes = maletasPendientes.length > 1;
 
   const { data: comprobanteItems } = comprobante
     ? await supabase
@@ -189,8 +192,19 @@ export default async function OrdenDetallePage({
           </span>
         </Link>
 
+        {hayVariasPendientes ? (
+          <EntregarYCobrarButton
+            ordenId={orden.id}
+            cantidadMaletas={maletasPendientes.length}
+          />
+        ) : null}
+
         {comprobante && comprobanteTotal && comprobanteTotal > 0 && !esEntregada(orden.estado) ? (
-          <EntregarYCobrarButton ordenId={orden.id} comprobanteId={comprobante.id} />
+          <EntregarYCobrarButton
+            ordenId={orden.id}
+            comprobanteId={comprobante.id}
+            soloEsta={hayVariasPendientes}
+          />
         ) : null}
 
         <Link

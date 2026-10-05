@@ -7,6 +7,7 @@ import {
   actualizarDescripcionEnSheets,
   actualizarEstadoEnSheets,
 } from "@/lib/google-sheets";
+import { esEntregada } from "@/lib/estado";
 import { capitalizarPrimera } from "@/lib/texto";
 import type { Estado } from "@/types/database";
 
@@ -100,6 +101,89 @@ export async function actualizarDescripcionOrden(
 }
 
 export type EntregarYCobrarState = { error: string } | null;
+
+// Igual que entregarYCobrar pero para todas las maletas del mismo
+// recibo que todavía no se entregan — cuando el cliente viene por
+// todas juntas y se le manda UN solo recibo con todo cancelado y
+// entregado.
+export async function entregarYCobrarRecibo(
+  ordenId: string,
+): Promise<EntregarYCobrarState> {
+  const supabase = await createClient();
+
+  const { data: actual } = await supabase
+    .from("ordenes")
+    .select("numero_recibo")
+    .eq("id", ordenId)
+    .single();
+
+  if (!actual) {
+    return { error: "No se encontró la orden." };
+  }
+
+  const { data: hermanas } = await supabase
+    .from("ordenes")
+    .select("id, estado")
+    .eq("numero_recibo", actual.numero_recibo)
+    .order("created_at", { ascending: true });
+
+  const todas = hermanas ?? [];
+  const pendientes = todas.filter((o) => !esEntregada(o.estado));
+
+  if (pendientes.length === 0) {
+    return { error: "Todas las maletas de este recibo ya fueron entregadas." };
+  }
+
+  const { data: comprobantes } = await supabase
+    .from("comprobantes")
+    .select("id, orden_id, atendido_por")
+    .in(
+      "orden_id",
+      pendientes.map((o) => o.id),
+    );
+
+  for (const pendiente of pendientes) {
+    const comprobante = comprobantes?.find((c) => c.orden_id === pendiente.id);
+    if (!comprobante?.atendido_por) {
+      const numeroMaleta = todas.findIndex((o) => o.id === pendiente.id) + 1;
+      return {
+        error: `Primero elige quién atendió en la factura de la Maleta ${numeroMaleta}.`,
+      };
+    }
+  }
+
+  const { error: errorComprobantes } = await supabase
+    .from("comprobantes")
+    .update({ pagado: true })
+    .in(
+      "id",
+      (comprobantes ?? []).map((c) => c.id),
+    );
+
+  if (errorComprobantes) {
+    return { error: errorComprobantes.message };
+  }
+
+  const { error: errorOrdenes } = await supabase
+    .from("ordenes")
+    .update({ estado: "entregada" })
+    .in(
+      "id",
+      pendientes.map((o) => o.id),
+    );
+
+  if (errorOrdenes) {
+    return { error: errorOrdenes.message };
+  }
+
+  for (const pendiente of pendientes) {
+    await actualizarEstadoEnSheets(pendiente.id, "entregada");
+    revalidatePath(`/ordenes/${pendiente.id}`);
+    revalidatePath(`/ordenes/${pendiente.id}/comprobante`);
+  }
+  revalidatePath("/");
+  return null;
+}
 
 // Une en un solo paso lo que antes eran tres: marcar el comprobante
 // como pagado, pasar la orden a "entregada" y (desde el botón) abrir

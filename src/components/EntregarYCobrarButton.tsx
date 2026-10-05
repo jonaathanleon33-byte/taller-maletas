@@ -2,23 +2,38 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { entregarYCobrar } from "@/app/ordenes/[id]/actions";
+import {
+  entregarYCobrar,
+  entregarYCobrarRecibo,
+} from "@/app/ordenes/[id]/actions";
 
+// Dos usos: una sola maleta (comprobanteId) o todas las pendientes del
+// recibo (cantidadMaletas) cuando el cliente viene por todas juntas.
+// `soloEsta` solo cambia el texto, para distinguirlo del botón de
+// "todas" cuando se muestran los dos.
 export function EntregarYCobrarButton({
   ordenId,
   comprobanteId,
+  cantidadMaletas,
+  soloEsta,
 }: {
   ordenId: string;
-  comprobanteId: string;
+  comprobanteId?: string;
+  cantidadMaletas?: number;
+  soloEsta?: boolean;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const todas = cantidadMaletas !== undefined;
+
   function confirmar() {
     startTransition(async () => {
-      const resultado = await entregarYCobrar(ordenId, comprobanteId);
+      const resultado = todas
+        ? await entregarYCobrarRecibo(ordenId)
+        : await entregarYCobrar(ordenId, comprobanteId ?? "");
       if (resultado?.error) {
         setError(resultado.error);
         setConfirming(false);
@@ -28,15 +43,25 @@ export function EntregarYCobrarButton({
     });
   }
 
+  const etiqueta = todas
+    ? `Entregar las ${cantidadMaletas} maletas y marcar todas como pagadas`
+    : soloEsta
+      ? "Entregar solo esta maleta y marcar como pagada"
+      : "Entregar maleta y marcar como pagada";
+
   if (!confirming) {
     return (
       <div>
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-center text-base font-semibold text-white shadow-md shadow-emerald-600/30 active:bg-emerald-700"
+          className={`flex w-full items-center justify-center gap-2 rounded-lg py-3 text-center text-base font-semibold shadow-md ${
+            soloEsta
+              ? "border border-emerald-600 bg-white text-emerald-700 shadow-none active:bg-emerald-50"
+              : "bg-emerald-600 text-white shadow-emerald-600/30 active:bg-emerald-700"
+          }`}
         >
-          Entregar maleta y marcar como pagada
+          {etiqueta}
         </button>
         {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
       </div>
@@ -46,9 +71,9 @@ export function EntregarYCobrarButton({
   return (
     <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
       <p className="mb-3 text-sm text-emerald-900">
-        ¿Confirmás que el cliente ya pagó y se lleva la maleta? Se marca la
-        factura como pagada, la orden como entregada, y se abre WhatsApp con
-        el recibo.
+        {todas
+          ? `¿Confirmás que el cliente ya pagó y se lleva las ${cantidadMaletas} maletas? Se marcan todas las facturas como pagadas y todas las maletas como entregadas, y se abre WhatsApp con un solo recibo.`
+          : "¿Confirmás que el cliente ya pagó y se lleva la maleta? Se marca la factura como pagada, la orden como entregada, y se abre WhatsApp con el recibo."}
       </p>
       <div className="flex gap-2">
         <button
