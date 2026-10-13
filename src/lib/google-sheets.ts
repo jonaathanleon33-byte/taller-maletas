@@ -212,3 +212,43 @@ export async function marcarOrdenEliminadaEnSheets(ordenId: string) {
     console.error("No se pudo marcar la orden como eliminada en Sheets:", err);
   }
 }
+
+const COLUMNA_NOMBRE = "B";
+
+// Cambia el nombre del cliente en las filas de varias órdenes a la vez
+// (las maletas de un mismo recibo comparten cliente).
+export async function actualizarNombreEnSheets(
+  ordenIds: string[],
+  nombre: string,
+) {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const auth = getAuth();
+
+  if (!sheetId || !auth) {
+    warnFaltanVariables("actualización de nombre");
+    return;
+  }
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!${COLUMNA_ID}:${COLUMNA_ID}`,
+    });
+    const filas = res.data.values ?? [];
+    const ids = new Set(ordenIds);
+    const data = filas.flatMap((fila, i) =>
+      ids.has(String(fila[0] ?? ""))
+        ? [{ range: `${SHEET_NAME}!${COLUMNA_NOMBRE}${i + 1}`, values: [[nombre]] }]
+        : [],
+    );
+    if (data.length === 0) return;
+
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId: sheetId,
+      requestBody: { valueInputOption: "USER_ENTERED", data },
+    });
+  } catch (err) {
+    console.error("No se pudo actualizar el nombre en Google Sheets:", err);
+  }
+}

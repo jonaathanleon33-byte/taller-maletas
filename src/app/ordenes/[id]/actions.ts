@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   actualizarDescripcionEnSheets,
   actualizarEstadoEnSheets,
+  actualizarNombreEnSheets,
   marcarOrdenEliminadaEnSheets,
 } from "@/lib/google-sheets";
 import {
@@ -13,7 +14,7 @@ import {
   esEntregada,
   telefonoValido,
 } from "@/lib/estado";
-import { capitalizarPrimera } from "@/lib/texto";
+import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import type { Estado } from "@/types/database";
 import type { AccionResultado } from "@/lib/accion";
 
@@ -103,6 +104,40 @@ export async function registrarNotificacionListaGrupo(
 
   for (const id of ordenIds) revalidatePath(`/ordenes/${id}`);
   revalidatePath("/notificar");
+  revalidatePath("/");
+  return null;
+}
+
+// El cliente es el mismo para todas las maletas del mismo recibo, así
+// que el cambio de nombre se aplica a todas (y a sus filas del Sheet).
+export async function actualizarNombreCliente(
+  ordenId: string,
+  nombre: string,
+): Promise<AccionResultado> {
+  const limpio = capitalizarNombre(nombre.trim().replace(/\s+/g, " "));
+  if (!limpio) return { error: "Escribe un nombre." };
+  if (limpio.length > 100) return { error: "El nombre es demasiado largo." };
+
+  const supabase = await createClient();
+  const { data: actual } = await supabase
+    .from("ordenes")
+    .select("numero_recibo")
+    .eq("id", ordenId)
+    .single();
+  if (!actual) return { error: "No se encontró la orden." };
+
+  const { data: actualizadas, error } = await supabase
+    .from("ordenes")
+    .update({ cliente_nombre: limpio })
+    .eq("numero_recibo", actual.numero_recibo)
+    .select("id");
+
+  if (error) return { error: error.message };
+
+  const ids = (actualizadas ?? []).map((o) => o.id);
+  await actualizarNombreEnSheets(ids, limpio);
+
+  for (const id of ids) revalidatePath(`/ordenes/${id}`);
   revalidatePath("/");
   return null;
 }
