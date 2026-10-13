@@ -123,6 +123,36 @@ export type NegocioConfig = {
   updated_at: string;
 };
 
+export type TipoDomicilio =
+  | "recogida"
+  | "entrega"
+  | "recogida_entrega"
+  | "con_desbloqueo";
+export type EstadoDomicilio =
+  | "nuevo"
+  | "confirmado"
+  | "en_camino"
+  | "hecho"
+  | "cancelado";
+
+export type Domicilio = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  cliente_nombre: string;
+  cliente_telefono: string;
+  direccion: string;
+  barrio: string | null;
+  tipo: TipoDomicilio;
+  costo: number;
+  fecha: string;
+  hora: string;
+  numero_recibo: string | null;
+  notas: string | null;
+  estado: EstadoDomicilio;
+  origen: "formulario" | "manual";
+};
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -162,6 +192,15 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      domicilios: {
+        Row: Domicilio;
+        Insert: Omit<Domicilio, "id" | "created_at" | "updated_at" | "estado" | "origen" | "barrio" | "numero_recibo" | "notas" | "costo"> &
+          Partial<
+            Pick<Domicilio, "estado" | "origen" | "barrio" | "numero_recibo" | "notas" | "costo">
+          >;
+        Update: Partial<Omit<Domicilio, "id" | "created_at">>;
+        Relationships: [];
       };
       servicios: {
         Row: Servicio;

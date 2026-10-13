@@ -10,6 +10,8 @@ export function BotonInicio() {
   // WhatsApp — el cliente que la abre no debe tener forma de entrar
   // al resto del sistema (lista de órdenes, otros clientes, etc.).
   if (pathname?.startsWith("/r/")) return null;
+  // Igual el formulario público de domicilio (/domicilio, no /domicilios).
+  if (pathname === "/domicilio" || pathname?.startsWith("/domicilio/")) return null;
 
   return (
     <Link

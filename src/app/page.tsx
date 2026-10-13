@@ -21,6 +21,7 @@ import {
   DIAS_PLAZO_RECOGIDA,
   corteDiasHabiles,
   corteRenotificar,
+  fechaColombia,
   } from "@/lib/estado";
 import type { ComprobanteItem, Estado, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
@@ -228,6 +229,8 @@ export default async function Home({
   };
   let porRenotificar = 0;
   let porBodegaje = 0;
+  let domiciliosNuevos = 0;
+  let domiciliosHoy = 0;
   if (!missingEnv) {
     const supabase = await createClient();
     const contar = (estado: Estado) =>
@@ -259,6 +262,20 @@ export default async function Home({
     contadores.entregadasSinReparar = sinReparar.count ?? 0;
     porRenotificar = renot.count ?? 0;
     porBodegaje = bodeg.count ?? 0;
+
+    const [nuevosDom, hoyDom] = await Promise.all([
+      supabase
+        .from("domicilios")
+        .select("id", { count: "exact", head: true })
+        .eq("estado", "nuevo"),
+      supabase
+        .from("domicilios")
+        .select("id", { count: "exact", head: true })
+        .in("estado", ["nuevo", "confirmado", "en_camino"])
+        .eq("fecha", fechaColombia(new Date())),
+    ]);
+    domiciliosNuevos = nuevosDom.count ?? 0;
+    domiciliosHoy = hoyDom.count ?? 0;
   }
 
   // Saldo/abono por orden, para mostrarlo de una vez en cada tarjeta
@@ -417,6 +434,28 @@ export default async function Home({
             Venta directa
           </Link>
         </div>
+
+        <Link
+          href="/domicilios"
+          className={`mb-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm font-medium active:opacity-80 ${
+            domiciliosNuevos > 0
+              ? "border-blue-300 bg-blue-50 text-blue-900"
+              : "border-slate-200 bg-white text-slate-700"
+          }`}
+        >
+          <span>
+            Domicilios
+            {domiciliosNuevos > 0
+              ? ` · ${domiciliosNuevos} ${domiciliosNuevos === 1 ? "nuevo por confirmar" : "nuevos por confirmar"}`
+              : ""}
+            {domiciliosHoy > 0
+              ? ` · ${domiciliosHoy} para hoy`
+              : domiciliosNuevos === 0
+                ? " · nada pendiente hoy"
+                : ""}
+          </span>
+          <span className="shrink-0 text-xs font-semibold uppercase">Ver</span>
+        </Link>
 
         {!missingEnv && !error ? (
           <ContadorEstados

@@ -22,10 +22,11 @@ export const config = {
     /*
      * Corre en todo menos:
      * - /login (para no crear un loop de redirects)
+     * - /domicilio: formulario público que se le envía al cliente.
      * - /r/* : el recibo público que reciben los clientes por WhatsApp,
      *   nunca debe pedir la clave del taller.
      * - archivos estáticos, íconos y manifest de la app instalable.
      */
-    "/((?!login|r/|_next/static|_next/image|favicon.ico|manifest.webmanifest|icon-|apple-icon).*)",
+    "/((?!login|r/|domicilio$|domicilio/|_next/static|_next/image|favicon.ico|manifest.webmanifest|icon-|apple-icon).*)",
   ],
 };
