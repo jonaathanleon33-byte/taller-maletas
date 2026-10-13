@@ -74,6 +74,26 @@ export function estaAtrasada(orden: Pick<Orden, "fecha_recibido" | "estado">) {
   return orden.estado === "recibida" && diasSinEntregar(orden) > DIAS_ALERTA;
 }
 
+// Días después de avisarle al cliente que su maleta está lista, tras
+// los cuales conviene volver a avisarle si todavía no la recoge.
+export const DIAS_RENOTIFICAR = 3;
+
+const MS_DIA = 1000 * 60 * 60 * 24;
+
+export function diasDesdeNotificacion(
+  orden: Pick<Orden, "estado" | "notificada_lista_en">,
+) {
+  if (orden.estado !== "lista" || !orden.notificada_lista_en) return null;
+  return Math.floor((Date.now() - new Date(orden.notificada_lista_en).getTime()) / MS_DIA);
+}
+
+export function debeRenotificar(
+  orden: Pick<Orden, "estado" | "notificada_lista_en">,
+) {
+  const dias = diasDesdeNotificacion(orden);
+  return dias !== null && dias >= DIAS_RENOTIFICAR;
+}
+
 type EstadoColor = "verde" | "amarillo" | "azul" | "rojo" | "gris";
 
 const COLOR_CLASSES: Record<EstadoColor, { bar: string; badge: string; dot: string }> = {

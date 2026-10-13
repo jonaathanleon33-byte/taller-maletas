@@ -36,9 +36,33 @@ export async function cambiarEstado(
 
   await actualizarEstadoEnSheets(ordenId, estado);
 
+  // Si deja de estar "lista", el aviso de "ya puede recogerla" que se
+  // le mandó antes deja de valer. Va aparte y sin revisar el error para
+  // que un fallo acá nunca impida el cambio de estado en sí.
+  if (estado !== "lista") {
+    await supabase
+      .from("ordenes")
+      .update({ notificada_lista_en: null })
+      .eq("id", ordenId);
+  }
+
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
   return null;
+}
+
+// Se llama al tocar "Notificar por WhatsApp" con la maleta en "Lista":
+// deja registrado cuándo se le avisó al cliente.
+export async function registrarNotificacionLista(ordenId: string) {
+  const supabase = await createClient();
+  await supabase
+    .from("ordenes")
+    .update({ notificada_lista_en: new Date().toISOString() })
+    .eq("id", ordenId)
+    .eq("estado", "lista");
+
+  revalidatePath(`/ordenes/${ordenId}`);
+  revalidatePath("/");
 }
 
 export async function actualizarTelefonoOrden(

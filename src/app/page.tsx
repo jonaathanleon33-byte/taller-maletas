@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
 import { formatFecha } from "@/lib/format";
-import { DIAS_ALERTA, estaAtrasada } from "@/lib/estado";
+import { DIAS_ALERTA, DIAS_RENOTIFICAR, estaAtrasada } from "@/lib/estado";
 import type { ComprobanteItem, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
 
@@ -21,7 +21,8 @@ type Filtro =
   | "lista"
   | "entregada"
   | "entregada_sin_reparar"
-  | "atrasada";
+  | "atrasada"
+  | "renotificar";
 
 const FILTRO_LABELS: Record<Filtro, string> = {
   recibida: "Recibidas",
@@ -29,6 +30,7 @@ const FILTRO_LABELS: Record<Filtro, string> = {
   entregada: "Entregadas",
   entregada_sin_reparar: "Entregadas sin reparar",
   atrasada: "Atrasadas",
+  renotificar: "Por volver a notificar",
 };
 
 function esFiltroValido(valor: string | undefined): valor is Filtro {
@@ -37,7 +39,8 @@ function esFiltroValido(valor: string | undefined): valor is Filtro {
     valor === "lista" ||
     valor === "entregada" ||
     valor === "entregada_sin_reparar" ||
-    valor === "atrasada"
+    valor === "atrasada" ||
+    valor === "renotificar"
   );
 }
 
@@ -66,6 +69,14 @@ function cutoffAtrasada() {
   ).toISOString();
 }
 
+// Maletas "Listas" a las que se les avisó hace DIAS_RENOTIFICAR días o
+// más y siguen sin recogerse.
+function cutoffRenotificar() {
+  return new Date(
+    Date.now() - DIAS_RENOTIFICAR * 24 * 60 * 60 * 1000,
+  ).toISOString();
+}
+
 async function buscarOrdenes(
   q: string | undefined,
   fecha: string | undefined,
@@ -78,13 +89,19 @@ async function buscarOrdenes(
     query = query
       .eq("fecha_prometida", fecha)
       .order("fecha_prometida", { ascending: true });
+  } else if (filtro === "renotificar") {
+    query = query.order("notificada_lista_en", { ascending: true });
   } else if (filtro === "atrasada") {
     query = query.order("fecha_recibido", { ascending: true });
   } else {
     query = query.order("fecha_recibido", { ascending: false });
   }
 
-  if (filtro === "atrasada") {
+  if (filtro === "renotificar") {
+    query = query
+      .eq("estado", "lista")
+      .lte("notificada_lista_en", cutoffRenotificar());
+  } else if (filtro === "atrasada") {
     query = query.eq("estado", "recibida").lte("fecha_recibido", cutoffAtrasada());
   } else if (filtro === "recibida") {
     query = query.eq("estado", "recibida").gt("fecha_recibido", cutoffAtrasada());
@@ -153,8 +170,16 @@ export default async function Home({
     entregadasSinReparar: 0,
     atrasadas: 0,
   };
+  let porRenotificar = 0;
   if (!missingEnv) {
     const supabase = await createClient();
+    const { count } = await supabase
+      .from("ordenes")
+      .select("id", { count: "exact", head: true })
+      .eq("estado", "lista")
+      .lte("notificada_lista_en", cutoffRenotificar());
+    porRenotificar = count ?? 0;
+
     const { data: todas } = await supabase
       .from("ordenes")
       .select("estado, fecha_recibido");
@@ -309,6 +334,24 @@ export default async function Home({
             atrasadas={contadores.atrasadas}
             filtroActivo={filtro}
           />
+        ) : null}
+
+        {porRenotificar > 0 ? (
+          <Link
+            href={filtro === "renotificar" ? "/" : "/?filtro=renotificar"}
+            className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 active:bg-amber-100"
+          >
+            <span>
+              {porRenotificar === 1
+                ? "1 cliente"
+                : `${porRenotificar} clientes`}{" "}
+              por volver a notificar (sin recoger hace {DIAS_RENOTIFICAR} días o
+              más)
+            </span>
+            <span className="shrink-0 text-xs font-semibold uppercase">
+              {filtro === "renotificar" ? "Ver todas" : "Ver"}
+            </span>
+          </Link>
         ) : null}
 
         <div className="mb-2">

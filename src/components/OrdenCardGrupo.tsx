@@ -9,7 +9,11 @@ import {
   getEstadoClasses,
 } from "@/lib/estado";
 import { EstadoBadge } from "@/components/EstadoBadge";
-import { ResumenPago, type ComprobanteResumen } from "@/components/OrdenCard";
+import {
+  AvisoNotificacion,
+  ResumenPago,
+  type ComprobanteResumen,
+} from "@/components/OrdenCard";
 
 export function OrdenCardGrupo({
   ordenes,
@@ -73,6 +77,7 @@ export function OrdenCardGrupo({
                         ? ESTADO_LABELS[orden.estado]
                         : `${dias} ${dias === 1 ? "día" : "días"} sin entregar`}
                     </p>
+                    <AvisoNotificacion orden={orden} />
                   </div>
                   <EstadoBadge orden={orden} />
                 </div>

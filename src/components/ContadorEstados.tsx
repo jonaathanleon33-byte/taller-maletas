@@ -13,7 +13,8 @@ type FiltroEstado =
   | "lista"
   | "entregada"
   | "entregada_sin_reparar"
-  | "atrasada";
+  | "atrasada"
+  | "renotificar";
 
 export function ContadorEstados({
   recibidas,

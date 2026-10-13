@@ -4,6 +4,8 @@ import {
   ESTADO_LABELS,
   TAMANO_LABELS,
   TIPO_LABELS,
+  debeRenotificar,
+  diasDesdeNotificacion,
   diasSinEntregar,
   esEntregada,
   getEstadoClasses,
@@ -17,6 +19,31 @@ export type ComprobanteResumen = {
   saldoPendiente: number;
   pagado: boolean;
 };
+
+// Línea chica en la tarjeta: cuándo se le avisó al cliente que su maleta
+// estaba lista, y en ámbar cuando ya toca volver a avisarle.
+export function AvisoNotificacion({
+  orden,
+}: {
+  orden: Pick<Orden, "estado" | "notificada_lista_en">;
+}) {
+  const dias = diasDesdeNotificacion(orden);
+  if (dias === null) return null;
+
+  if (debeRenotificar(orden)) {
+    return (
+      <p className="mt-1 text-xs font-semibold text-amber-700">
+        Volver a notificar · avisada hace {dias} {dias === 1 ? "día" : "días"}
+      </p>
+    );
+  }
+
+  return (
+    <p className="mt-1 text-xs text-slate-400">
+      Notificada {dias === 0 ? "hoy" : `hace ${dias} ${dias === 1 ? "día" : "días"}`}
+    </p>
+  );
+}
 
 export function ResumenPago({ resumen }: { resumen: ComprobanteResumen }) {
   if (resumen.pagado) {
@@ -106,6 +133,7 @@ export function OrdenCard({
           ? ESTADO_LABELS[orden.estado]
           : `${dias} ${dias === 1 ? "día" : "días"} sin entregar`}
       </div>
+      <AvisoNotificacion orden={orden} />
 
       {resumen ? (
         <div className="mt-2 border-t border-slate-100 pt-2">
