@@ -8,6 +8,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { FiltroFechaEntrega } from "@/components/FiltroFechaEntrega";
 import { ContadorEstados } from "@/components/ContadorEstados";
 import { MascotasAmbiente } from "@/components/MascotasAmbiente";
+import { ActualizacionAutomatica } from "@/components/ActualizacionAutomatica";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
@@ -16,9 +17,8 @@ import {
   DIAS_ALERTA,
   DIAS_RENOTIFICAR,
   corteRenotificar,
-  estaAtrasada,
-} from "@/lib/estado";
-import type { ComprobanteItem, Orden } from "@/types/database";
+  } from "@/lib/estado";
+import type { ComprobanteItem, Estado, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
 
 type Filtro =
@@ -74,13 +74,19 @@ function cutoffAtrasada() {
   ).toISOString();
 }
 
+const PAGINA = 60;
+
 async function buscarOrdenes(
   q: string | undefined,
   fecha: string | undefined,
   filtro: Filtro | undefined,
+  limite: number,
 ) {
   const supabase = await createClient();
-  let query = supabase.from("ordenes").select("*");
+  let query = supabase
+    .from("ordenes")
+    .select("*", { count: "exact" })
+    .limit(limite);
 
   if (fecha) {
     query = query
@@ -129,12 +135,42 @@ async function buscarOrdenes(
   return query;
 }
 
+// Un recibo con varias maletas se muestra siempre completo, aunque la
+// página cortara el grupo a la mitad: traemos las hermanas que falten.
+async function completarGrupos(ordenes: Orden[]) {
+  const recibos = [...new Set(ordenes.map((o) => o.numero_recibo))];
+  if (recibos.length === 0) return ordenes;
+
+  const supabase = await createClient();
+  const { data: todas } = await supabase
+    .from("ordenes")
+    .select("*")
+    .in("numero_recibo", recibos);
+
+  const porRecibo = new Map<string, Orden[]>();
+  for (const o of todas ?? []) {
+    const grupo = porRecibo.get(o.numero_recibo) ?? [];
+    grupo.push(o);
+    porRecibo.set(o.numero_recibo, grupo);
+  }
+
+  return recibos.flatMap((r) =>
+    (porRecibo.get(r) ?? []).sort((a, b) => a.created_at.localeCompare(b.created_at)),
+  );
+}
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; fecha?: string; filtro?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    fecha?: string;
+    filtro?: string;
+    n?: string;
+  }>;
 }) {
-  const { q, fecha, filtro: filtroRaw } = await searchParams;
+  const { q, fecha, filtro: filtroRaw, n } = await searchParams;
+  const limite = Math.min(Math.max(Number(n) || PAGINA, PAGINA), 1000);
   const filtro = esFiltroValido(filtroRaw) ? filtroRaw : undefined;
   const negocio = await obtenerNegocioConfig();
 
@@ -143,17 +179,26 @@ export default async function Home({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   let ordenes: Orden[] = [];
+  let totalCoincidencias = 0;
+  let cargadas = 0;
   let error: string | null = null;
 
   if (missingEnv) {
     error =
       "Falta configurar las variables de entorno de Supabase (.env.local).";
   } else {
-    const { data, error: queryError } = await buscarOrdenes(q, fecha, filtro);
+    const { data, count, error: queryError } = await buscarOrdenes(
+      q,
+      fecha,
+      filtro,
+      limite,
+    );
     if (queryError) {
       error = queryError.message;
     } else {
-      ordenes = data ?? [];
+      cargadas = data?.length ?? 0;
+      totalCoincidencias = count ?? cargadas;
+      ordenes = await completarGrupos(data ?? []);
     }
   }
 
@@ -170,30 +215,28 @@ export default async function Home({
   let porRenotificar = 0;
   if (!missingEnv) {
     const supabase = await createClient();
-    const { count } = await supabase
-      .from("ordenes")
-      .select("id", { count: "exact", head: true })
-      .eq("estado", "lista")
-      .lt("notificada_lista_en", corteRenotificar());
-    porRenotificar = count ?? 0;
+    const contar = (estado: Estado) =>
+      supabase
+        .from("ordenes")
+        .select("id", { count: "exact", head: true })
+        .eq("estado", estado);
 
-    const { data: todas } = await supabase
-      .from("ordenes")
-      .select("estado, fecha_recibido");
+    const [recibidasTotal, atrasadas, listas, entregadas, sinReparar, renot] =
+      await Promise.all([
+        contar("recibida"),
+        contar("recibida").lte("fecha_recibido", cutoffAtrasada()),
+        contar("lista"),
+        contar("entregada"),
+        contar("entregada_sin_reparar"),
+        contar("lista").lt("notificada_lista_en", corteRenotificar()),
+      ]);
 
-    for (const o of todas ?? []) {
-      if (estaAtrasada(o)) {
-        contadores.atrasadas++;
-      } else if (o.estado === "recibida") {
-        contadores.recibidas++;
-      } else if (o.estado === "lista") {
-        contadores.listas++;
-      } else if (o.estado === "entregada") {
-        contadores.entregadas++;
-      } else if (o.estado === "entregada_sin_reparar") {
-        contadores.entregadasSinReparar++;
-      }
-    }
+    contadores.atrasadas = atrasadas.count ?? 0;
+    contadores.recibidas = (recibidasTotal.count ?? 0) - contadores.atrasadas;
+    contadores.listas = listas.count ?? 0;
+    contadores.entregadas = entregadas.count ?? 0;
+    contadores.entregadasSinReparar = sinReparar.count ?? 0;
+    porRenotificar = renot.count ?? 0;
   }
 
   // Saldo/abono por orden, para mostrarlo de una vez en cada tarjeta
@@ -243,9 +286,17 @@ export default async function Home({
     }
   }
 
+  const paramsVerMas = new URLSearchParams();
+  if (q) paramsVerMas.set("q", q);
+  if (fecha) paramsVerMas.set("fecha", fecha);
+  if (filtro) paramsVerMas.set("filtro", filtro);
+  paramsVerMas.set("n", String(limite + PAGINA));
+  const hrefVerMas = `/?${paramsVerMas.toString()}`;
+
   return (
     <div className="flex flex-1 flex-col bg-slate-50">
       <MascotasAmbiente />
+      <ActualizacionAutomatica />
 
       <AppHeader
         title="Taller de Maletas"
@@ -365,13 +416,13 @@ export default async function Home({
 
         {fecha ? (
           <p className="mb-3 text-sm font-medium text-slate-600">
-            {ordenes.length > 0
-              ? `Para entregar el ${formatFecha(fecha)} (${ordenes.length})`
+            {totalCoincidencias > 0
+              ? `Para entregar el ${formatFecha(fecha)} (${totalCoincidencias})`
               : `Nada prometido para el ${formatFecha(fecha)}`}
           </p>
         ) : filtro ? (
           <p className="mb-3 text-sm font-medium text-slate-600">
-            {FILTRO_LABELS[filtro]} ({ordenes.length})
+            {FILTRO_LABELS[filtro]} ({totalCoincidencias})
           </p>
         ) : null}
 
@@ -416,6 +467,16 @@ export default async function Home({
             ))}
           </ul>
         )}
+
+        {!error && cargadas < totalCoincidencias ? (
+          <Link
+            href={hrefVerMas}
+            scroll={false}
+            className="mt-4 flex items-center justify-center rounded-lg border border-slate-300 bg-white py-3 text-sm font-semibold text-slate-700 active:bg-slate-50"
+          >
+            Ver más ({totalCoincidencias - cargadas} restantes)
+          </Link>
+        ) : null}
       </main>
     </div>
   );
