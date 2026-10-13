@@ -236,3 +236,19 @@ export function telefonoValido(telefono: string) {
 
 export const MENSAJE_TELEFONO_INVALIDO =
   "El teléfono no es válido: debe tener 10 dígitos (por ejemplo 3001234567).";
+
+// Mensaje de "ya está lista" para un cliente con una o varias maletas
+// listas (agrupadas por teléfono): un solo mensaje en vez de uno por
+// maleta.
+export function mensajeListaGrupo(
+  ordenes: Pick<Orden, "cliente_nombre" | "numero_recibo" | "marca" | "color">[],
+) {
+  if (ordenes.length === 1) {
+    return mensajeWhatsapp({ ...ordenes[0], estado: "lista" });
+  }
+  const nombre = ordenes[0].cliente_nombre?.split(" ")[0] || "";
+  const detalle = ordenes
+    .map((o) => `${`${o.marca} ${o.color}`.trim()} (recibo #${o.numero_recibo})`)
+    .join(", ");
+  return `Hola ${nombre}, ¡buenas noticias! Tus maletas ${detalle} ya están listas para retirar. Te esperamos en nuestro centro técnico.`;
+}

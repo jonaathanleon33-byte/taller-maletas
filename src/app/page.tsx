@@ -391,10 +391,7 @@ export default async function Home({
         ) : null}
 
         {porRenotificar > 0 ? (
-          <Link
-            href={filtro === "renotificar" ? "/" : "/?filtro=renotificar"}
-            className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 active:bg-amber-100"
-          >
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
             <span>
               {porRenotificar === 1
                 ? "1 cliente"
@@ -402,10 +399,21 @@ export default async function Home({
               por volver a notificar (sin recoger hace {DIAS_RENOTIFICAR} días hábiles o
               más, de lunes a sábado)
             </span>
-            <span className="shrink-0 text-xs font-semibold uppercase">
-              {filtro === "renotificar" ? "Ver todas" : "Ver"}
+            <span className="flex shrink-0 flex-col items-end gap-1 text-xs font-semibold uppercase">
+              <Link
+                href="/notificar"
+                className="rounded-full bg-amber-600 px-3 py-1 text-white active:bg-amber-700"
+              >
+                Notificar
+              </Link>
+              <Link
+                href={filtro === "renotificar" ? "/" : "/?filtro=renotificar"}
+                className="underline"
+              >
+                {filtro === "renotificar" ? "Ver todas" : "Ver lista"}
+              </Link>
             </span>
-          </Link>
+          </div>
         ) : null}
 
         <div className="mb-2">

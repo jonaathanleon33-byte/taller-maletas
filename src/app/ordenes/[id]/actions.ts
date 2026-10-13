@@ -78,6 +78,28 @@ export async function registrarNotificacionLista(
   return null;
 }
 
+// Igual que registrarNotificacionLista, pero para todas las maletas
+// listas de un mismo cliente que se avisaron en un solo mensaje.
+export async function registrarNotificacionListaGrupo(
+  ordenIds: string[],
+): Promise<AccionResultado> {
+  if (ordenIds.length === 0) return null;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ordenes")
+    .update({ notificada_lista_en: new Date().toISOString() })
+    .in("id", ordenIds)
+    .eq("estado", "lista");
+
+  if (error) {
+    return { error: "No se pudo registrar la notificación: " + error.message };
+  }
+
+  revalidatePath("/notificar");
+  revalidatePath("/");
+  return null;
+}
+
 export async function actualizarTelefonoOrden(
   ordenId: string,
   telefono: string,

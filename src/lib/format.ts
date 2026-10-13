@@ -72,3 +72,12 @@ export function ahoraColombiaParaInput(ahora = new Date()) {
   const get = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "00";
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
+
+// Fecha (AAAA-MM-DD) de Colombia dentro de `dias` días, para los
+// atajos "Hoy / Mañana / En 3 días" del formulario.
+export function fechaColombiaMasDias(dias: number, ahora = new Date()) {
+  const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: ZONA }).format(ahora);
+  const d = new Date(`${hoy}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}

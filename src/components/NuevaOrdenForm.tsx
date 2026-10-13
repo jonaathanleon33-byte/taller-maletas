@@ -7,7 +7,7 @@ import {
 } from "@/app/ordenes/nueva/actions";
 import { ESTADOS, TAMANO_LABELS, TIPO_LABELS, esEntregada } from "@/lib/estado";
 import { EstadoSelect } from "@/components/EstadoSelect";
-import { ahoraColombiaParaInput } from "@/lib/format";
+import { ahoraColombiaParaInput, fechaColombiaMasDias } from "@/lib/format";
 import { comprimirImagen } from "@/lib/comprimir-imagen";
 import type { Cliente } from "@/lib/clientes";
 
@@ -39,6 +39,7 @@ export function NuevaOrdenForm({
   const [previews, setPreviews] = useState<string[]>([]);
   const [comprimiendo, setComprimiendo] = useState(false);
   const [fechaRecibido] = useState(() => ahoraColombiaParaInput());
+  const [fechaPrometida, setFechaPrometida] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [clienteNombre, setClienteNombre] = useState(
     prefill?.cliente_nombre ?? "",
@@ -399,8 +400,27 @@ export function NuevaOrdenForm({
               id="fecha_prometida"
               name="fecha_prometida"
               type="date"
+              value={fechaPrometida}
+              onChange={(e) => setFechaPrometida(e.target.value)}
               className={inputClass}
             />
+            <div className="mt-2 flex gap-2">
+              {[
+                { label: "Hoy", dias: 0 },
+                { label: "Mañana", dias: 1 },
+                { label: "En 3 días", dias: 3 },
+                { label: "En 1 semana", dias: 7 },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => setFechaPrometida(fechaColombiaMasDias(chip.dias))}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 active:bg-slate-100"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
