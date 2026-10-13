@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   actualizarComprobante,
   type ActualizarComprobanteState,
@@ -38,6 +38,7 @@ export function ComprobanteConfigForm({
     comprobante.orden_id,
   );
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [electronica, setElectronica] = useState(comprobante.facturacion_electronica);
 
   return (
     <form
@@ -140,7 +141,8 @@ export function ComprobanteConfigForm({
         <input
           type="checkbox"
           name="facturacion_electronica"
-          defaultChecked={comprobante.facturacion_electronica}
+          checked={electronica}
+          onChange={(e) => setElectronica(e.target.checked)}
           className="mt-0.5 h-4 w-4 rounded border-slate-300"
         />
         <span>
@@ -150,6 +152,16 @@ export function ComprobanteConfigForm({
           </span>
         </span>
       </label>
+
+      {electronica ? (
+        <div
+          role="alert"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-900"
+        >
+          Recuerda que se cobra el IVA del 19 % y que debes pedirle el RUT al
+          cliente para la factura electrónica.
+        </div>
+      ) : null}
 
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input

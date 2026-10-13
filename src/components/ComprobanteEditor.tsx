@@ -27,6 +27,16 @@ export function ComprobanteEditor({
 
   return (
     <>
+      {comprobante.facturacion_electronica ? (
+        <div
+          role="alert"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-900"
+        >
+          Factura electrónica: recuerda que se cobra el IVA del 19 % y que
+          debes pedirle el RUT al cliente.
+        </div>
+      ) : null}
+
       <section className="rounded-lg border border-slate-200 bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
