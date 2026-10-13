@@ -21,7 +21,10 @@ async function capturarRecibo(el: HTMLElement): Promise<Blob | null> {
 
 async function subirRecibo(blob: Blob): Promise<string | null> {
   const supabase = createClient();
-  const archivo = `recibo-${Date.now()}.png`;
+  // El sufijo aleatorio hace que la dirección del recibo no se pueda
+  // adivinar probando números consecutivos.
+  const azar = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+  const archivo = `recibo-${Date.now()}-${azar}.png`;
   const { error } = await supabase.storage
     .from("recibos-compartidos")
     .upload(archivo, blob, { contentType: "image/png" });

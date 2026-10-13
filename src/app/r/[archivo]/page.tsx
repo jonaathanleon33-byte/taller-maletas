@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-// Nombre de archivo esperado: recibo-<timestamp>.png (ver AccionesRecibo).
+// Nombre de archivo esperado: recibo-<timestamp>[-<azar>].png (ver AccionesRecibo).
 // Validamos el formato para no armar URLs de Storage con cualquier
 // texto que llegue en el parámetro de la ruta.
-const ARCHIVO_VALIDO = /^recibo-\d+\.png$/;
+const ARCHIVO_VALIDO = /^recibo-\d+(-[a-f0-9]{16})?\.png$/;
 
 function urlImagen(archivo: string) {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recibos-compartidos/${archivo}`;
