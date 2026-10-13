@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { exportarOrdenASheets } from "@/lib/google-sheets";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
+import { fechaHoraColombiaAIso } from "@/lib/format";
 import type { Estado, Tamano, TipoMaleta } from "@/types/database";
 
 export type CrearOrdenState = { error: string } | null;
@@ -51,7 +52,7 @@ export async function crearOrden(
   }
 
   const fecha_recibido = fecha_recibidoRaw
-    ? new Date(fecha_recibidoRaw).toISOString()
+    ? fechaHoraColombiaAIso(fecha_recibidoRaw)
     : new Date().toISOString();
 
   const supabase = await createClient();

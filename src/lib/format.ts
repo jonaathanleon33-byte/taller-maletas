@@ -1,9 +1,18 @@
+// Todo se muestra en hora de Colombia, no en la del servidor: Vercel
+// corre en UTC, que va 5 horas adelantada.
+const ZONA = "America/Bogota";
+const SOLO_FECHA = /^\d{4}-\d{2}-\d{2}$/;
+
 export function formatFecha(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("es-CO", {
+  // Una fecha sin hora (como la fecha prometida) no es un instante: se
+  // muestra tal cual, sin correrla de día por la zona horaria.
+  const soloFecha = SOLO_FECHA.test(iso);
+  return new Date(soloFecha ? `${iso}T12:00:00Z` : iso).toLocaleDateString("es-CO", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: soloFecha ? "UTC" : ZONA,
   });
 }
 
@@ -15,11 +24,34 @@ export function formatFechaHora(iso: string | null) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: ZONA,
   });
 }
 
 export function formatFechaHoraRecibo(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: ZONA,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(iso))
+      .map((p) => [p.type, p.value]),
+  );
+  return `${partes.year}-${partes.month}-${partes.day} ${partes.hour}:${partes.minute}:${partes.second}`;
+}
+
+// Lo que escribe la persona en el campo de fecha y hora (sin zona) es
+// hora de Colombia; sin esto el servidor lo leía como UTC y lo guardaba
+// 5 horas corrido.
+export function fechaHoraColombiaAIso(valor: string) {
+  const naive = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(valor);
+  if (!naive) return new Date(valor).toISOString();
+  const conSegundos = valor.length === 16 ? `${valor}:00` : valor;
+  return new Date(`${conSegundos}-05:00`).toISOString();
 }
