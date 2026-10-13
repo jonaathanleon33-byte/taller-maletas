@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { capitalizarPrimera } from "@/lib/texto";
+import type { AccionResultado } from "@/lib/accion";
 
 export type CrearServicioState = { error: string } | null;
 
@@ -35,8 +36,16 @@ export async function crearServicio(
   return null;
 }
 
-export async function toggleServicioActivo(servicioId: string, activo: boolean) {
+export async function toggleServicioActivo(
+  servicioId: string,
+  activo: boolean,
+): Promise<AccionResultado> {
   const supabase = await createClient();
-  await supabase.from("servicios").update({ activo }).eq("id", servicioId);
+  const { error } = await supabase
+    .from("servicios")
+    .update({ activo })
+    .eq("id", servicioId);
+  if (error) return { error: error.message };
   revalidatePath("/servicios");
+  return null;
 }

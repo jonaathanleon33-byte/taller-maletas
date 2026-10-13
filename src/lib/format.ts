@@ -55,3 +55,20 @@ export function fechaHoraColombiaAIso(valor: string) {
   const conSegundos = valor.length === 16 ? `${valor}:00` : valor;
   return new Date(`${conSegundos}-05:00`).toISOString();
 }
+
+// Fecha y hora actuales de Colombia en el formato de un
+// <input type="datetime-local"> (AAAA-MM-DDTHH:mm), sin depender de la
+// zona horaria del teléfono o computador desde donde se abra el sistema.
+export function ahoraColombiaParaInput(ahora = new Date()) {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ZONA,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(ahora);
+  const get = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}

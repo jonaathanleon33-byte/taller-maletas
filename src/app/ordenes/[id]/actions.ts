@@ -6,10 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import {
   actualizarDescripcionEnSheets,
   actualizarEstadoEnSheets,
+  marcarOrdenEliminadaEnSheets,
 } from "@/lib/google-sheets";
 import { esEntregada } from "@/lib/estado";
 import { capitalizarPrimera } from "@/lib/texto";
 import type { Estado } from "@/types/database";
+import type { AccionResultado } from "@/lib/accion";
 
 export type CambiarEstadoState = { error: string } | null;
 
@@ -53,47 +55,60 @@ export async function cambiarEstado(
 
 // Se llama al tocar "Notificar por WhatsApp" con la maleta en "Lista":
 // deja registrado cuándo se le avisó al cliente.
-export async function registrarNotificacionLista(ordenId: string) {
+export async function registrarNotificacionLista(
+  ordenId: string,
+): Promise<AccionResultado> {
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("ordenes")
     .update({ notificada_lista_en: new Date().toISOString() })
     .eq("id", ordenId)
     .eq("estado", "lista");
 
+  if (error) {
+    return { error: "No se pudo registrar la notificación: " + error.message };
+  }
+
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
+  return null;
 }
 
 export async function actualizarTelefonoOrden(
   ordenId: string,
   telefono: string,
-) {
+): Promise<AccionResultado> {
   const limpio = telefono.trim();
-  if (!limpio) return;
+  if (!limpio) return { error: "Escribe un teléfono." };
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("ordenes")
     .update({ cliente_telefono: limpio })
     .eq("id", ordenId);
 
+  if (error) return { error: error.message };
+
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
+  return null;
 }
 
 export async function actualizarTecnicoOrden(
   ordenId: string,
   tecnico: string,
-) {
+): Promise<AccionResultado> {
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("ordenes")
     .update({ tecnico_asignado: tecnico.trim() || null })
     .eq("id", ordenId);
 
+  if (error) return { error: error.message };
+
   revalidatePath(`/ordenes/${ordenId}`);
   revalidatePath("/");
+  return null;
 }
 
 export type ActualizarDescripcionState = { error: string } | null;
@@ -286,6 +301,8 @@ export async function eliminarOrden(
   if (error) {
     return { error: error.message };
   }
+
+  await marcarOrdenEliminadaEnSheets(ordenId);
 
   revalidatePath("/");
   redirect("/");

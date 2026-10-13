@@ -13,9 +13,11 @@ export function TelefonoClienteRow({
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(telefono);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function cancelar() {
     setValor(telefono);
+    setError(null);
     setEditando(false);
   }
 
@@ -23,13 +25,19 @@ export function TelefonoClienteRow({
     const limpio = valor.trim();
     if (!limpio) return;
     startTransition(async () => {
-      await actualizarTelefonoOrden(ordenId, limpio);
+      const res = await actualizarTelefonoOrden(ordenId, limpio);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      setError(null);
       setEditando(false);
     });
   }
 
   if (editando) {
     return (
+      <div>
       <div className="flex items-center justify-between gap-4 py-2 text-sm">
         <span className="text-slate-500">Teléfono</span>
         <div className="flex items-center gap-1.5">
@@ -66,6 +74,8 @@ export function TelefonoClienteRow({
             Cancelar
           </button>
         </div>
+      </div>
+      {error ? <p className="pb-2 text-right text-xs text-red-600">{error}</p> : null}
       </div>
     );
   }

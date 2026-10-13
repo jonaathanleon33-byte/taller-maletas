@@ -30,10 +30,13 @@ export const dynamic = "force-dynamic";
 
 export default async function OrdenDetallePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ aviso?: string; n?: string }>;
 }) {
   const { id } = await params;
+  const { aviso, n: fallidas } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: orden }, { data: fotos }, { data: historial }, { data: comprobante }] =
@@ -94,6 +97,13 @@ export default async function OrdenDetallePage({
       />
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4 pb-10">
+        {aviso === "fotos" ? (
+          <p className="rounded-lg border border-red-300 bg-red-50 p-3 text-center text-sm font-medium text-red-800">
+            La orden se creó, pero {Number(fallidas) > 1 ? `${fallidas} fotos no se subieron` : "una foto no se subió"}.
+            Revisa las fotos de la orden y vuelve a tomarlas si hace falta.
+          </p>
+        ) : null}
+
         <NavegacionMaletas ordenId={orden.id} hermanas={hermanas ?? []} />
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">

@@ -184,3 +184,31 @@ export async function actualizarDescripcionEnSheets(
     console.error("No se pudo actualizar la descripción en Google Sheets:", err);
   }
 }
+
+// Cuando se elimina una orden no se borra su fila del Sheet (es el
+// respaldo del taller); se deja marcada como "Eliminada" para que no
+// parezca una maleta todavía pendiente.
+export async function marcarOrdenEliminadaEnSheets(ordenId: string) {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const auth = getAuth();
+
+  if (!sheetId || !auth) {
+    warnFaltanVariables("marcar orden eliminada");
+    return;
+  }
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const numeroFila = await buscarFilaPorOrdenId(sheets, sheetId, ordenId);
+    if (!numeroFila) return;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!${COLUMNA_ESTADO}${numeroFila}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [["Eliminada"]] },
+    });
+  } catch (err) {
+    console.error("No se pudo marcar la orden como eliminada en Sheets:", err);
+  }
+}

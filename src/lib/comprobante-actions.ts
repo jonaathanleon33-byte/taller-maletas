@@ -6,6 +6,7 @@ import { actualizarPrecioEnSheets } from "@/lib/google-sheets";
 import { calcularTotales } from "@/lib/money";
 import { capitalizarPrimera } from "@/lib/texto";
 import type { MetodoPago } from "@/types/database";
+import type { AccionResultado } from "@/lib/accion";
 
 // Después de cualquier cambio en los ítems o en descuentos/impuestos
 // del comprobante, si está asociado a una orden (no una venta
@@ -87,11 +88,16 @@ export async function eliminarItem(
   path: string,
   comprobanteId: string,
   itemId: string,
-) {
+): Promise<AccionResultado> {
   const supabase = await createClient();
-  await supabase.from("comprobante_items").delete().eq("id", itemId);
+  const { error } = await supabase
+    .from("comprobante_items")
+    .delete()
+    .eq("id", itemId);
+  if (error) return { error: error.message };
   revalidatePath(path);
   await sincronizarPrecioSheets(comprobanteId);
+  return null;
 }
 
 export async function actualizarPrecioItem(
@@ -99,15 +105,19 @@ export async function actualizarPrecioItem(
   comprobanteId: string,
   itemId: string,
   precioUnitario: number,
-) {
-  if (Number.isNaN(precioUnitario) || precioUnitario < 0) return;
+): Promise<AccionResultado> {
+  if (Number.isNaN(precioUnitario) || precioUnitario < 0) {
+    return { error: "El precio no es válido." };
+  }
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("comprobante_items")
     .update({ precio_unitario: precioUnitario })
     .eq("id", itemId);
+  if (error) return { error: error.message };
   revalidatePath(path);
   await sincronizarPrecioSheets(comprobanteId);
+  return null;
 }
 
 export type ActualizarComprobanteState = { error: string } | null;

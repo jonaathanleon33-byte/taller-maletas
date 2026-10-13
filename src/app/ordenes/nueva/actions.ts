@@ -84,6 +84,8 @@ export async function crearOrden(
   await exportarOrdenASheets(orden);
   await supabase.from("comprobantes").insert({ orden_id: orden.id });
 
+  let fotosFallidas = 0;
+
   for (const [index, file] of fotos.entries()) {
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `${orden.id}/${Date.now()}-${index}.${ext}`;
@@ -92,16 +94,27 @@ export async function crearOrden(
       .from("fotos-ordenes")
       .upload(path, file, { contentType: file.type || "image/jpeg" });
 
-    if (uploadError) continue;
+    if (uploadError) {
+      fotosFallidas++;
+      continue;
+    }
 
     const { data: publicUrlData } = supabase.storage
       .from("fotos-ordenes")
       .getPublicUrl(path);
 
-    await supabase
+    const { error: fotoError } = await supabase
       .from("fotos")
       .insert({ orden_id: orden.id, url: publicUrlData.publicUrl });
+
+    if (fotoError) fotosFallidas++;
   }
 
-  redirect(`/ordenes/${orden.id}`);
+  // La orden ya quedó creada; si alguna foto no subió, se le avisa al
+  // llegar a la orden en vez de dejarla sin fotos en silencio.
+  redirect(
+    fotosFallidas > 0
+      ? `/ordenes/${orden.id}?aviso=fotos&n=${fotosFallidas}`
+      : `/ordenes/${orden.id}`,
+  );
 }

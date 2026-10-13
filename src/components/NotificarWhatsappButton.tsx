@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { registrarNotificacionLista } from "@/app/ordenes/[id]/actions";
 
 // Sigue siendo un link normal (target=_blank) para que el navegador no
@@ -16,13 +17,19 @@ export function NotificarWhatsappButton({
   registrar: boolean;
   volver: boolean;
 }) {
+  const [error, setError] = useState<string | null>(null);
+
   return (
+    <>
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => {
-        if (registrar) void registrarNotificacionLista(ordenId);
+        if (!registrar) return;
+        void registrarNotificacionLista(ordenId).then((res) =>
+          setError(res?.error ?? null),
+        );
       }}
       className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-center text-base font-semibold text-white active:bg-emerald-700"
     >
@@ -31,5 +38,11 @@ export function NotificarWhatsappButton({
       </svg>
       {volver ? "Volver a notificar por WhatsApp" : "Notificar por WhatsApp"}
     </a>
+    {error ? (
+      <p className="text-center text-sm text-red-600">
+        El mensaje se abrió, pero no quedó registrado como notificado. {error}
+      </p>
+    ) : null}
+    </>
   );
 }

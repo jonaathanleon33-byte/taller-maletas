@@ -15,6 +15,7 @@ export function TecnicoAsignadoRow({
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(tecnico ?? "");
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function cancelar() {
     setValor(tecnico ?? "");
@@ -24,7 +25,13 @@ export function TecnicoAsignadoRow({
   function guardar(next: string) {
     setValor(next);
     startTransition(async () => {
-      await actualizarTecnicoOrden(ordenId, next);
+      const res = await actualizarTecnicoOrden(ordenId, next);
+      if (res?.error) {
+        setError(res.error);
+        setValor(tecnico ?? "");
+        return;
+      }
+      setError(null);
       setEditando(false);
     });
   }
@@ -58,6 +65,7 @@ export function TecnicoAsignadoRow({
     <div className="flex items-center justify-between gap-4 py-2 text-sm">
       <span className="text-slate-500">Técnico asignado</span>
       <span className="flex items-center gap-1.5 text-right font-medium text-slate-900">
+        {error ? <span className="text-xs font-normal text-red-600">{error}</span> : null}
         {tecnico || "—"}
         <button
           type="button"

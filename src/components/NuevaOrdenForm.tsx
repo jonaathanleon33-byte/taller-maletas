@@ -7,17 +7,12 @@ import {
 } from "@/app/ordenes/nueva/actions";
 import { ESTADOS, TAMANO_LABELS, TIPO_LABELS, esEntregada } from "@/lib/estado";
 import { EstadoSelect } from "@/components/EstadoSelect";
+import { ahoraColombiaParaInput } from "@/lib/format";
 import { comprimirImagen } from "@/lib/comprimir-imagen";
 import type { Cliente } from "@/lib/clientes";
 
 const initialState: CrearOrdenState = null;
 const MAX_FOTOS = 3;
-
-function ahoraLocal() {
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  return now.toISOString().slice(0, 16);
-}
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-slate-500 focus:outline-none";
@@ -43,7 +38,7 @@ export function NuevaOrdenForm({
   const [fotos, setFotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [comprimiendo, setComprimiendo] = useState(false);
-  const [fechaRecibido] = useState(ahoraLocal);
+  const [fechaRecibido] = useState(() => ahoraColombiaParaInput());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [clienteNombre, setClienteNombre] = useState(
     prefill?.cliente_nombre ?? "",

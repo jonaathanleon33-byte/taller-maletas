@@ -16,6 +16,7 @@ export function ItemRow({
   const [editando, setEditando] = useState(false);
   const [precio, setPrecio] = useState(String(item.precio_unitario));
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function cancelar() {
     setPrecio(String(item.precio_unitario));
@@ -26,7 +27,12 @@ export function ItemRow({
     const valor = Number(precio);
     if (Number.isNaN(valor) || valor < 0) return;
     startTransition(async () => {
-      await actualizarPrecioItem(path, item.comprobante_id, item.id, valor);
+      const res = await actualizarPrecioItem(path, item.comprobante_id, item.id, valor);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      setError(null);
       setEditando(false);
     });
   }
@@ -64,6 +70,7 @@ export function ItemRow({
           {item.descuento_pct > 0 ? (
             <span>· -{item.descuento_pct}%</span>
           ) : null}
+          {error ? <span className="text-red-600">{error}</span> : null}
           {editando ? (
             <>
               <button
