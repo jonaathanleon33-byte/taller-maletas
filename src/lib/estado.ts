@@ -83,7 +83,7 @@ const ZONA = "America/Bogota";
 
 // Fecha calendario (AAAA-MM-DD) en hora de Colombia: el servidor corre
 // en UTC, y de noche ya sería "mañana" allá.
-function fechaColombia(fecha: Date) {
+export function fechaColombia(fecha: Date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA }).format(fecha);
 }
 
@@ -218,3 +218,21 @@ export function numeroWhatsapp(telefono: string) {
 export function linkWhatsapp(telefono: string, mensaje: string) {
   return `https://wa.me/${numeroWhatsapp(telefono)}?text=${encodeURIComponent(mensaje)}`;
 }
+
+// Un teléfono es usable si, sin signos ni espacios, tiene 10 dígitos
+// (celular o fijo con indicativo), 12 con el 57 de Colombia al inicio,
+// o 7 (fijo local), o número internacional con "+". Así se evita guardar números cortados o con letras
+// que luego no abren WhatsApp.
+export function telefonoValido(telefono: string) {
+  if (/[^\d\s+\-().]/.test(telefono)) return false;
+  const digitos = telefono.replace(/\D/g, "");
+  // Clientes del exterior: "+" y código de país (hasta 15 dígitos).
+  if (telefono.trim().startsWith("+")) {
+    return digitos.length >= 8 && digitos.length <= 15;
+  }
+  if (digitos.length === 10 || digitos.length === 7) return true;
+  return digitos.length === 12 && digitos.startsWith("57");
+}
+
+export const MENSAJE_TELEFONO_INVALIDO =
+  "El teléfono no es válido: debe tener 10 dígitos (por ejemplo 3001234567).";

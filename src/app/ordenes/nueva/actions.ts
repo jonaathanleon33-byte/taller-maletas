@@ -5,6 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { exportarOrdenASheets } from "@/lib/google-sheets";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import { fechaHoraColombiaAIso } from "@/lib/format";
+import {
+  MENSAJE_TELEFONO_INVALIDO,
+  fechaColombia,
+  telefonoValido,
+} from "@/lib/estado";
 import type { Estado, Tamano, TipoMaleta } from "@/types/database";
 
 export type CrearOrdenState = { error: string } | null;
@@ -41,6 +46,21 @@ export async function crearOrden(
     !dano_descripcion
   ) {
     return { error: "Completa todos los campos obligatorios." };
+  }
+
+  if (!telefonoValido(cliente_telefono)) {
+    return { error: MENSAJE_TELEFONO_INVALIDO };
+  }
+
+  // La fecha del formulario ya viene en hora de Colombia; comparamos el
+  // día prometido contra el día de recepción.
+  const diaRecibido = fecha_recibidoRaw
+    ? fecha_recibidoRaw.slice(0, 10)
+    : fechaColombia(new Date());
+  if (fecha_prometida && fecha_prometida < diaRecibido) {
+    return {
+      error: "La fecha prometida no puede ser anterior a la fecha en que se recibe la maleta.",
+    };
   }
 
   const fotos = formData

@@ -8,7 +8,11 @@ import {
   actualizarEstadoEnSheets,
   marcarOrdenEliminadaEnSheets,
 } from "@/lib/google-sheets";
-import { esEntregada } from "@/lib/estado";
+import {
+  MENSAJE_TELEFONO_INVALIDO,
+  esEntregada,
+  telefonoValido,
+} from "@/lib/estado";
 import { capitalizarPrimera } from "@/lib/texto";
 import type { Estado } from "@/types/database";
 import type { AccionResultado } from "@/lib/accion";
@@ -80,6 +84,7 @@ export async function actualizarTelefonoOrden(
 ): Promise<AccionResultado> {
   const limpio = telefono.trim();
   if (!limpio) return { error: "Escribe un teléfono." };
+  if (!telefonoValido(limpio)) return { error: MENSAJE_TELEFONO_INVALIDO };
 
   const supabase = await createClient();
   const { error } = await supabase

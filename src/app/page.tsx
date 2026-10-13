@@ -326,6 +326,12 @@ export default async function Home({
             >
               Precios
             </Link>
+            <Link
+              href="/revision"
+              className="flex h-9 items-center justify-center rounded-full border border-slate-300 px-3 text-sm font-medium text-slate-700 active:bg-slate-100"
+            >
+              Revisión
+            </Link>
           </div>
         }
       />
