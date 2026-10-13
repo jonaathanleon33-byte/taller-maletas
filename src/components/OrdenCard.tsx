@@ -4,11 +4,16 @@ import {
   ESTADO_LABELS,
   TAMANO_LABELS,
   TIPO_LABELS,
+  BODEGAJE,
+  DIAS_PLAZO_RECOGIDA,
   debeRenotificar,
+  destruccionVencida,
   diasDesdeNotificacion,
+  diasDesdeSegundoAviso,
   diasSinEntregar,
   esEntregada,
   getEstadoClasses,
+  plazoVencido,
 } from "@/lib/estado";
 import { EstadoBadge } from "@/components/EstadoBadge";
 import { formatMoney } from "@/lib/money";
@@ -25,8 +30,33 @@ export type ComprobanteResumen = {
 export function AvisoNotificacion({
   orden,
 }: {
-  orden: Pick<Orden, "estado" | "notificada_lista_en">;
+  orden: Pick<Orden, "estado" | "notificada_lista_en" | "segunda_notificacion_en">;
 }) {
+  const diasSegundo = diasDesdeSegundoAviso(orden);
+  if (diasSegundo !== null) {
+    if (destruccionVencida(orden)) {
+      return (
+        <p className="mt-1 text-xs font-semibold text-red-700">
+          Pasaron 6 meses del segundo aviso · puede enviarse a destrucción
+        </p>
+      );
+    }
+    if (plazoVencido(orden)) {
+      return (
+        <p className="mt-1 text-xs font-semibold text-red-700">
+          Plazo vencido · cobrar bodegaje {formatMoney(BODEGAJE)}
+        </p>
+      );
+    }
+    const faltan = DIAS_PLAZO_RECOGIDA - diasSegundo;
+    return (
+      <p className="mt-1 text-xs text-slate-500">
+        2.º aviso hace {diasSegundo} {diasSegundo === 1 ? "día" : "días"} · faltan{" "}
+        {faltan} {faltan === 1 ? "día hábil" : "días hábiles"} de plazo
+      </p>
+    );
+  }
+
   const dias = diasDesdeNotificacion(orden);
   if (dias === null) return null;
 

@@ -23,6 +23,7 @@ export default async function NotificarPage() {
     .from("ordenes")
     .select("*")
     .eq("estado", "lista")
+    .is("segunda_notificacion_en", null)
     .or(`notificada_lista_en.is.null,notificada_lista_en.lt.${corteRenotificar()}`)
     .order("notificada_lista_en", { ascending: true, nullsFirst: true })
     .order("created_at", { ascending: true })

@@ -48,7 +48,7 @@ export async function cambiarEstado(
   if (estado !== "lista") {
     await supabase
       .from("ordenes")
-      .update({ notificada_lista_en: null })
+      .update({ notificada_lista_en: null, segunda_notificacion_en: null })
       .eq("id", ordenId);
   }
 
@@ -62,20 +62,7 @@ export async function cambiarEstado(
 export async function registrarNotificacionLista(
   ordenId: string,
 ): Promise<AccionResultado> {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("ordenes")
-    .update({ notificada_lista_en: new Date().toISOString() })
-    .eq("id", ordenId)
-    .eq("estado", "lista");
-
-  if (error) {
-    return { error: "No se pudo registrar la notificación: " + error.message };
-  }
-
-  revalidatePath(`/ordenes/${ordenId}`);
-  revalidatePath("/");
-  return null;
+  return registrarNotificacionListaGrupo([ordenId]);
 }
 
 // Igual que registrarNotificacionLista, pero para todas las maletas
@@ -85,9 +72,28 @@ export async function registrarNotificacionListaGrupo(
 ): Promise<AccionResultado> {
   if (ordenIds.length === 0) return null;
   const supabase = await createClient();
+  const ahora = new Date().toISOString();
+
+  // Primero las que ya habían sido notificadas: este es su SEGUNDO
+  // aviso (el que trae el plazo de 6 días hábiles). Debe ir antes del
+  // update general, que les pondría la fecha nueva a todas.
+  const { error: errorSegunda } = await supabase
+    .from("ordenes")
+    .update({ notificada_lista_en: ahora, segunda_notificacion_en: ahora })
+    .in("id", ordenIds)
+    .eq("estado", "lista")
+    .not("notificada_lista_en", "is", null)
+    .is("segunda_notificacion_en", null);
+
+  if (errorSegunda) {
+    return {
+      error: "No se pudo registrar la notificación: " + errorSegunda.message,
+    };
+  }
+
   const { error } = await supabase
     .from("ordenes")
-    .update({ notificada_lista_en: new Date().toISOString() })
+    .update({ notificada_lista_en: ahora })
     .in("id", ordenIds)
     .eq("estado", "lista");
 
@@ -95,6 +101,7 @@ export async function registrarNotificacionListaGrupo(
     return { error: "No se pudo registrar la notificación: " + error.message };
   }
 
+  for (const id of ordenIds) revalidatePath(`/ordenes/${id}`);
   revalidatePath("/notificar");
   revalidatePath("/");
   return null;

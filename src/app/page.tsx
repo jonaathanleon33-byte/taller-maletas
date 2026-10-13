@@ -12,11 +12,14 @@ import { MascotasAmbiente } from "@/components/MascotasAmbiente";
 import { ActualizacionAutomatica } from "@/components/ActualizacionAutomatica";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
-import { calcularTotales } from "@/lib/money";
+import { calcularTotales, formatMoney } from "@/lib/money";
 import { formatFecha } from "@/lib/format";
 import {
   DIAS_ALERTA,
   DIAS_RENOTIFICAR,
+  BODEGAJE,
+  DIAS_PLAZO_RECOGIDA,
+  corteDiasHabiles,
   corteRenotificar,
   } from "@/lib/estado";
 import type { ComprobanteItem, Estado, Orden } from "@/types/database";
@@ -28,7 +31,8 @@ type Filtro =
   | "entregada"
   | "entregada_sin_reparar"
   | "atrasada"
-  | "renotificar";
+  | "renotificar"
+  | "bodegaje";
 
 const FILTRO_LABELS: Record<Filtro, string> = {
   recibida: "Recibidas",
@@ -37,6 +41,7 @@ const FILTRO_LABELS: Record<Filtro, string> = {
   entregada_sin_reparar: "Entregadas sin reparar",
   atrasada: "Atrasadas",
   renotificar: "Por volver a notificar",
+  bodegaje: "Plazo vencido (cobrar bodegaje)",
 };
 
 function esFiltroValido(valor: string | undefined): valor is Filtro {
@@ -46,7 +51,8 @@ function esFiltroValido(valor: string | undefined): valor is Filtro {
     valor === "entregada" ||
     valor === "entregada_sin_reparar" ||
     valor === "atrasada" ||
-    valor === "renotificar"
+    valor === "renotificar" ||
+    valor === "bodegaje"
   );
 }
 
@@ -95,6 +101,8 @@ async function buscarOrdenes(
       .order("fecha_prometida", { ascending: true });
   } else if (filtro === "renotificar") {
     query = query.order("notificada_lista_en", { ascending: true });
+  } else if (filtro === "bodegaje") {
+    query = query.order("segunda_notificacion_en", { ascending: true });
   } else if (filtro === "atrasada") {
     query = query.order("fecha_recibido", { ascending: true });
   } else {
@@ -104,7 +112,12 @@ async function buscarOrdenes(
   if (filtro === "renotificar") {
     query = query
       .eq("estado", "lista")
+      .is("segunda_notificacion_en", null)
       .lt("notificada_lista_en", corteRenotificar());
+  } else if (filtro === "bodegaje") {
+    query = query
+      .eq("estado", "lista")
+      .lt("segunda_notificacion_en", corteDiasHabiles(DIAS_PLAZO_RECOGIDA));
   } else if (filtro === "atrasada") {
     query = query.eq("estado", "recibida").lte("fecha_recibido", cutoffAtrasada());
   } else if (filtro === "recibida") {
@@ -214,6 +227,7 @@ export default async function Home({
     atrasadas: 0,
   };
   let porRenotificar = 0;
+  let porBodegaje = 0;
   if (!missingEnv) {
     const supabase = await createClient();
     const contar = (estado: Estado) =>
@@ -222,14 +236,20 @@ export default async function Home({
         .select("id", { count: "exact", head: true })
         .eq("estado", estado);
 
-    const [recibidasTotal, atrasadas, listas, entregadas, sinReparar, renot] =
+    const [recibidasTotal, atrasadas, listas, entregadas, sinReparar, renot, bodeg] =
       await Promise.all([
         contar("recibida"),
         contar("recibida").lte("fecha_recibido", cutoffAtrasada()),
         contar("lista"),
         contar("entregada"),
         contar("entregada_sin_reparar"),
-        contar("lista").lt("notificada_lista_en", corteRenotificar()),
+        contar("lista")
+          .is("segunda_notificacion_en", null)
+          .lt("notificada_lista_en", corteRenotificar()),
+        contar("lista").lt(
+          "segunda_notificacion_en",
+          corteDiasHabiles(DIAS_PLAZO_RECOGIDA),
+        ),
       ]);
 
     contadores.atrasadas = atrasadas.count ?? 0;
@@ -238,6 +258,7 @@ export default async function Home({
     contadores.entregadas = entregadas.count ?? 0;
     contadores.entregadasSinReparar = sinReparar.count ?? 0;
     porRenotificar = renot.count ?? 0;
+    porBodegaje = bodeg.count ?? 0;
   }
 
   // Saldo/abono por orden, para mostrarlo de una vez en cada tarjeta
@@ -406,6 +427,22 @@ export default async function Home({
             atrasadas={contadores.atrasadas}
             filtroActivo={filtro}
           />
+        ) : null}
+
+        {porBodegaje > 0 ? (
+          <Link
+            href={filtro === "bodegaje" ? "/" : "/?filtro=bodegaje"}
+            className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-900 active:bg-red-100"
+          >
+            <span>
+              {porBodegaje === 1 ? "1 maleta" : `${porBodegaje} maletas`} con el
+              plazo vencido ({DIAS_PLAZO_RECOGIDA} días hábiles después del
+              segundo aviso): cobrar bodegaje de {formatMoney(BODEGAJE)}
+            </span>
+            <span className="shrink-0 text-xs font-semibold uppercase">
+              {filtro === "bodegaje" ? "Ver todas" : "Ver"}
+            </span>
+          </Link>
         ) : null}
 
         {porRenotificar > 0 ? (

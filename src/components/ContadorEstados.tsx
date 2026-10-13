@@ -14,7 +14,8 @@ type FiltroEstado =
   | "entregada"
   | "entregada_sin_reparar"
   | "atrasada"
-  | "renotificar";
+  | "renotificar"
+  | "bodegaje";
 
 export function ContadorEstados({
   recibidas,

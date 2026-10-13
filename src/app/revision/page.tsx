@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/server";
-import { fechaColombia, telefonoValido } from "@/lib/estado";
+import {
+  BODEGAJE,
+  destruccionVencida,
+  fechaColombia,
+  fechaDestruccion,
+  plazoVencido,
+  telefonoValido,
+} from "@/lib/estado";
+import { formatFecha } from "@/lib/format";
 import { calcularSubtotalItem, calcularTotales, formatMoney } from "@/lib/money";
 import type { Comprobante, ComprobanteItem, Orden } from "@/types/database";
 
@@ -118,6 +126,25 @@ export default async function RevisionPage() {
     }
   }
 
+  const bodegajePendiente: Hallazgo[] = [];
+  const paraDestruccion: Hallazgo[] = [];
+  for (const o of ordenes) {
+    if (!o.segunda_notificacion_en) continue;
+    if (destruccionVencida(o)) {
+      paraDestruccion.push({
+        href: `/ordenes/${o.id}`,
+        titulo: etiqueta(o),
+        detalle: `Segundo aviso: ${formatFecha(o.segunda_notificacion_en)} · destrucción desde el ${formatFecha(fechaDestruccion(o.segunda_notificacion_en))}.`,
+      });
+    } else if (plazoVencido(o)) {
+      bodegajePendiente.push({
+        href: `/ordenes/${o.id}`,
+        titulo: etiqueta(o),
+        detalle: `Segundo aviso: ${formatFecha(o.segunda_notificacion_en)} · plazo vencido, cobrar bodegaje ${formatMoney(BODEGAJE)}.`,
+      });
+    }
+  }
+
   const telefonosMalos: Hallazgo[] = [];
   const fechasMalas: Hallazgo[] = [];
   for (const o of ordenes) {
@@ -149,6 +176,16 @@ export default async function RevisionPage() {
       ayuda: "La maleta salió del taller pero la factura sigue como pendiente.",
       lista: entregadasSinPagar,
       extra: deudaTotal > 0 ? `Por cobrar: ${formatMoney(deudaTotal)}` : undefined,
+    },
+    {
+      titulo: "Bodegaje por cobrar",
+      ayuda: "Pasaron 6 días hábiles desde el segundo aviso y siguen sin recogerse.",
+      lista: bodegajePendiente,
+    },
+    {
+      titulo: "Para enviar a destrucción",
+      ayuda: "Pasaron 6 meses desde el segundo aviso.",
+      lista: paraDestruccion,
     },
     {
       titulo: "Facturas sin ítems",

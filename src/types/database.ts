@@ -25,6 +25,7 @@ export type Orden = {
   tecnico_asignado: string | null;
   recibido_por: string | null;
   notificada_lista_en: string | null;
+  segunda_notificacion_en: string | null;
   estado: Estado;
   fecha_recibido: string;
   fecha_prometida: string | null;
@@ -58,12 +59,14 @@ export type OrdenInsert = Omit<
   | "numero_recibo"
   | "ubicacion"
   | "notificada_lista_en"
+  | "segunda_notificacion_en"
 > & {
   estado?: Estado;
   fecha_entregada?: string | null;
   numero_recibo?: string;
   ubicacion?: string | null;
   notificada_lista_en?: string | null;
+  segunda_notificacion_en?: string | null;
 };
 
 export type MetodoPago =

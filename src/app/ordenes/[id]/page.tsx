@@ -17,9 +17,14 @@ import {
   TAMANO_LABELS,
   TECNICOS,
   TIPO_LABELS,
+  BODEGAJE,
+  DIAS_PLAZO_RECOGIDA,
   debeRenotificar,
+  destruccionVencida,
   diasDesdeNotificacion,
   esEntregada,
+  fechaDestruccion,
+  plazoVencido,
   linkWhatsapp,
   mensajeWhatsapp,
 } from "@/lib/estado";
@@ -87,6 +92,8 @@ export default async function OrdenDetallePage({
   const whatsappHref = linkWhatsapp(orden.cliente_telefono, mensaje);
   const renotificar = debeRenotificar(orden);
   const diasNotificada = diasDesdeNotificacion(orden);
+  const vencido = plazoVencido(orden);
+  const paraDestruccion = destruccionVencida(orden);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -146,6 +153,13 @@ export default async function OrdenDetallePage({
                 ) : (
                   "Sin notificar"
                 )}
+              </InfoRow>
+            ) : null}
+            {orden.estado === "lista" && orden.segunda_notificacion_en ? (
+              <InfoRow label="Segundo aviso">
+                <span className={vencido ? "font-semibold text-red-700" : ""}>
+                  {formatFechaHora(orden.segunda_notificacion_en)}
+                </span>
               </InfoRow>
             ) : null}
             <InfoRow label="Entregada">
@@ -246,6 +260,14 @@ export default async function OrdenDetallePage({
           </h2>
           <CambiarEstadoForm ordenId={orden.id} estadoActual={orden.estado} />
         </section>
+
+        {vencido ? (
+          <p className="rounded-lg border border-red-300 bg-red-50 p-3 text-center text-sm font-medium text-red-900">
+            {paraDestruccion
+              ? `Pasaron 6 meses desde el segundo aviso: la maleta puede enviarse a destrucción (desde el ${formatFecha(fechaDestruccion(orden.segunda_notificacion_en!))}). `
+              : `Pasaron los ${DIAS_PLAZO_RECOGIDA} días hábiles del segundo aviso: corresponde cobrar bodegaje de ${formatMoney(BODEGAJE)}. Envío a destrucción desde el ${formatFecha(fechaDestruccion(orden.segunda_notificacion_en!))}.`}
+          </p>
+        ) : null}
 
         {renotificar ? (
           <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-center text-sm font-medium text-amber-900">

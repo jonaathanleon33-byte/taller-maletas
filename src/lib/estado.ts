@@ -112,12 +112,24 @@ export function diasHabilesDesde(desde: string, ahora = new Date()) {
 // Instante límite para consultar en la base: las maletas notificadas
 // antes de esto ya cumplen DIAS_RENOTIFICAR días de trabajo.
 export function corteRenotificar(ahora = new Date()) {
+  return corteDiasHabiles(DIAS_RENOTIFICAR, ahora);
+}
+
+// Tras el segundo aviso, el cliente tiene este plazo (días de trabajo,
+// lunes a sábado) para recoger; después se cobra bodegaje.
+export const DIAS_PLAZO_RECOGIDA = 6;
+export const MESES_DESTRUCCION = 6;
+export const BODEGAJE = 50000;
+
+// Instante límite para consultar en la base: lo ocurrido antes de esto
+// ya cumple `dias` días de trabajo.
+export function corteDiasHabiles(dias: number, ahora = new Date()) {
   // Caminamos hacia atrás desde hoy contando días de trabajo; al
-  // terminar, `dia` es el último día en que pudo notificarse (inclusive)
+  // terminar, `dia` es el último día en que pudo ocurrir (inclusive)
   // para que ya hayan pasado esos días. El corte es el final de ese día.
   let dia = fechaColombia(ahora);
   let contados = 0;
-  while (contados < DIAS_RENOTIFICAR) {
+  while (contados < dias) {
     if (!esDomingo(dia)) contados++;
     dia = sumarDias(dia, -1);
   }
@@ -131,11 +143,50 @@ export function diasDesdeNotificacion(
   return diasHabilesDesde(orden.notificada_lista_en);
 }
 
+// Una vez enviado el segundo aviso ya no se pide un tercero: desde ahí
+// corre el plazo de recogida (ver plazoVencido).
 export function debeRenotificar(
-  orden: Pick<Orden, "estado" | "notificada_lista_en">,
+  orden: Pick<Orden, "estado" | "notificada_lista_en"> &
+    Partial<Pick<Orden, "segunda_notificacion_en">>,
 ) {
+  if (orden.segunda_notificacion_en) return false;
   const dias = diasDesdeNotificacion(orden);
   return dias !== null && dias >= DIAS_RENOTIFICAR;
+}
+
+type ConSegundoAviso = Pick<Orden, "estado" | "segunda_notificacion_en">;
+
+export function diasDesdeSegundoAviso(orden: ConSegundoAviso) {
+  if (orden.estado !== "lista" || !orden.segunda_notificacion_en) return null;
+  return diasHabilesDesde(orden.segunda_notificacion_en);
+}
+
+// Pasaron los 6 días hábiles del segundo aviso y la maleta sigue
+// esperando: toca cobrar el bodegaje.
+export function plazoVencido(orden: ConSegundoAviso) {
+  const dias = diasDesdeSegundoAviso(orden);
+  return dias !== null && dias >= DIAS_PLAZO_RECOGIDA;
+}
+
+// Fecha (AAAA-MM-DD, hora de Colombia) desde la cual la maleta puede
+// enviarse a destrucción: 6 meses después del segundo aviso.
+export function fechaDestruccion(segundaNotificacion: string) {
+  const [anio, mes, dia] = fechaColombia(new Date(segundaNotificacion))
+    .split("-")
+    .map(Number);
+  // Si el mes de destino es más corto (31 ago → feb), queda su último día.
+  const ultimoDia = new Date(
+    Date.UTC(anio, mes + MESES_DESTRUCCION, 0, 12),
+  ).getUTCDate();
+  const d = new Date(
+    Date.UTC(anio, mes - 1 + MESES_DESTRUCCION, Math.min(dia, ultimoDia), 12),
+  );
+  return d.toISOString().slice(0, 10);
+}
+
+export function destruccionVencida(orden: ConSegundoAviso, ahora = new Date()) {
+  if (orden.estado !== "lista" || !orden.segunda_notificacion_en) return false;
+  return fechaColombia(ahora) >= fechaDestruccion(orden.segunda_notificacion_en);
 }
 
 type EstadoColor = "verde" | "amarillo" | "azul" | "rojo" | "gris";
