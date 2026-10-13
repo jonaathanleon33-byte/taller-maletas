@@ -188,7 +188,18 @@ export function estadoDotClass(estado: Estado) {
   return COLOR_CLASSES[ESTADO_COLOR[estado]].dot;
 }
 
-export function mensajeWhatsapp(orden: Pick<Orden, "cliente_nombre" | "numero_recibo" | "estado" | "marca" | "color">) {
+// Texto que se agrega al aviso de "ya está lista" desde la segunda
+// notificación en adelante: plazo para recoger, bodegaje y destrucción.
+export const AVISO_PLAZO_RECOGIDA =
+  "Después de este segundo aviso tienes 6 días hábiles para recoger tus pertenencias (maletas o morrales). " +
+  "Nuestro horario es de lunes a viernes de 9:00 a. m. a 6:00 p. m. y sábados de 9:00 a. m. a 4:00 p. m. " +
+  "Pasados esos 6 días hábiles se cobrará un bodegaje de $50.000, y pasados 6 meses desde este segundo aviso " +
+  "las maletas se enviarán a destrucción.";
+
+export function mensajeWhatsapp(
+  orden: Pick<Orden, "cliente_nombre" | "numero_recibo" | "estado" | "marca" | "color"> &
+    Partial<Pick<Orden, "notificada_lista_en">>,
+) {
   const nombre = orden.cliente_nombre?.split(" ")[0] || "";
   const maleta = `${orden.marca} ${orden.color}`.trim();
 
@@ -196,6 +207,9 @@ export function mensajeWhatsapp(orden: Pick<Orden, "cliente_nombre" | "numero_re
     case "recibida":
       return `Hola ${nombre}, te confirmamos que recibimos tu maleta ${maleta} (recibo #${orden.numero_recibo}) en el taller. Te avisamos apenas tengamos novedades.`;
     case "lista":
+      if (orden.notificada_lista_en) {
+        return `Hola ${nombre}, te recordamos que tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar en nuestro centro técnico. ${AVISO_PLAZO_RECOGIDA}`;
+      }
       return `Hola ${nombre}, ¡buenas noticias! Tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar. Te esperamos en nuestro centro técnico.`;
     case "entregada":
       return `Hola ${nombre}, gracias por retirar tu maleta ${maleta} (recibo #${orden.numero_recibo}). ¡Cualquier consulta estamos a disposición!`;
@@ -241,7 +255,8 @@ export const MENSAJE_TELEFONO_INVALIDO =
 // listas (agrupadas por teléfono): un solo mensaje en vez de uno por
 // maleta.
 export function mensajeListaGrupo(
-  ordenes: Pick<Orden, "cliente_nombre" | "numero_recibo" | "marca" | "color">[],
+  ordenes: (Pick<Orden, "cliente_nombre" | "numero_recibo" | "marca" | "color"> &
+    Partial<Pick<Orden, "notificada_lista_en">>)[],
 ) {
   if (ordenes.length === 1) {
     return mensajeWhatsapp({ ...ordenes[0], estado: "lista" });
@@ -250,5 +265,8 @@ export function mensajeListaGrupo(
   const detalle = ordenes
     .map((o) => `${`${o.marca} ${o.color}`.trim()} (recibo #${o.numero_recibo})`)
     .join(", ");
+  if (ordenes.some((o) => o.notificada_lista_en)) {
+    return `Hola ${nombre}, te recordamos que tus maletas ${detalle} ya están listas para retirar en nuestro centro técnico. ${AVISO_PLAZO_RECOGIDA}`;
+  }
   return `Hola ${nombre}, ¡buenas noticias! Tus maletas ${detalle} ya están listas para retirar. Te esperamos en nuestro centro técnico.`;
 }
