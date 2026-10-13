@@ -44,7 +44,7 @@ export default async function EtiquetaPage({
         const total = calcularTotales(
           items ?? [],
           comprobante.descuento_global,
-          comprobante.impuestos,
+          comprobante.impuestos, comprobante.facturacion_electronica
         ).total;
         const saldoPendiente = total - comprobante.abono;
         return {

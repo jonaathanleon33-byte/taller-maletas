@@ -81,7 +81,7 @@ export default async function RevisionPage() {
     const orden = c.orden_id ? ordenPorId.get(c.orden_id) : undefined;
     if (!orden) continue;
     const susItems = itemsPorComprobante.get(c.id) ?? [];
-    const { total } = calcularTotales(susItems, c.descuento_global, c.impuestos);
+    const { total } = calcularTotales(susItems, c.descuento_global, c.impuestos, c.facturacion_electronica);
     const hrefFactura = `/ordenes/${orden.id}/comprobante`;
 
     if (susItems.length === 0) {

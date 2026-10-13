@@ -45,7 +45,7 @@ export default async function VentaPage({
   const { total } = calcularTotales(
     items ?? [],
     comprobante.descuento_global,
-    comprobante.impuestos,
+    comprobante.impuestos, comprobante.facturacion_electronica
   );
 
   const nombre = comprobante.cliente_nombre?.split(" ")[0] ?? "";

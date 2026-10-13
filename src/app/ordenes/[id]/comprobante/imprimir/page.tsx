@@ -85,7 +85,7 @@ export default async function ImprimirComprobantePage({
     if (!m.comprobante) return acc;
     return (
       acc +
-      calcularTotales(m.items, m.comprobante.descuento_global, m.comprobante.impuestos)
+      calcularTotales(m.items, m.comprobante.descuento_global, m.comprobante.impuestos, m.comprobante.facturacion_electronica)
         .total
     );
   }, 0);

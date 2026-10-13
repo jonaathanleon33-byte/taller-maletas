@@ -313,7 +313,7 @@ export default async function Home({
       const { total } = calcularTotales(
         itemsPorComprobante.get(c.id) ?? [],
         c.descuento_global,
-        c.impuestos,
+        c.impuestos, c.facturacion_electronica
       );
       if (total <= 0) continue;
       resumenPorOrden.set(c.orden_id, {

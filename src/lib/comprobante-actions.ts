@@ -16,7 +16,7 @@ async function sincronizarPrecioSheets(comprobanteId: string) {
   const supabase = await createClient();
   const { data: comprobante } = await supabase
     .from("comprobantes")
-    .select("orden_id, descuento_global, impuestos")
+    .select("orden_id, descuento_global, impuestos, facturacion_electronica")
     .eq("id", comprobanteId)
     .maybeSingle();
 
@@ -30,7 +30,7 @@ async function sincronizarPrecioSheets(comprobanteId: string) {
   const { total } = calcularTotales(
     items ?? [],
     comprobante.descuento_global,
-    comprobante.impuestos,
+    comprobante.impuestos, comprobante.facturacion_electronica
   );
 
   await actualizarPrecioEnSheets(comprobante.orden_id, total);
@@ -135,6 +135,7 @@ export async function actualizarComprobante(
   const impuestos = Number(formData.get("impuestos") || 0);
   const abono = Number(formData.get("abono") || 0);
   const pagado = formData.get("pagado") === "on";
+  const facturacionElectronica = formData.get("facturacion_electronica") === "on";
 
   if (!atendidoPor) {
     return { error: "Selecciona quién atendió al cliente." };
@@ -159,6 +160,7 @@ export async function actualizarComprobante(
       impuestos,
       abono,
       pagado,
+      facturacion_electronica: facturacionElectronica,
     })
     .eq("id", comprobanteId);
 

@@ -38,7 +38,7 @@ export default async function ImprimirVentaPage({
   const { total } = calcularTotales(
     items ?? [],
     comprobante.descuento_global,
-    comprobante.impuestos,
+    comprobante.impuestos, comprobante.facturacion_electronica
   );
   const numeroRecibo = `V-${String(comprobante.numero_venta).padStart(6, "0")}`;
   const nombre = (comprobante.cliente_nombre ?? "").split(" ")[0];

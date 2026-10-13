@@ -136,6 +136,21 @@ export function ComprobanteConfigForm({
         />
       </div>
 
+      <label className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          name="facturacion_electronica"
+          defaultChecked={comprobante.facturacion_electronica}
+          className="mt-0.5 h-4 w-4 rounded border-slate-300"
+        />
+        <span>
+          <span className="font-medium text-slate-900">Facturación electrónica</span>
+          <span className="block text-xs text-slate-500">
+            El cliente la pidió: el total incluye el 19 % de IVA.
+          </span>
+        </span>
+      </label>
+
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input
           type="checkbox"

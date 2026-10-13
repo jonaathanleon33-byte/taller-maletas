@@ -17,8 +17,8 @@ type MaletaGrupo = {
 };
 
 function totalesDe(items: ComprobanteItem[], comprobante: Comprobante | null) {
-  if (!comprobante) return { subtotal: 0, total: 0 };
-  return calcularTotales(items, comprobante.descuento_global, comprobante.impuestos);
+  if (!comprobante) return { subtotal: 0, iva: 0, total: 0 };
+  return calcularTotales(items, comprobante.descuento_global, comprobante.impuestos, comprobante.facturacion_electronica);
 }
 
 // Versión "bonita" del recibo, pensada solo para la imagen que se
@@ -56,6 +56,7 @@ export function ReciboDigital({
 
   const totalesPorMaleta = maletas.map((m) => totalesDe(m.items, m.comprobante));
   const total = totalesPorMaleta.reduce((acc, t) => acc + t.total, 0);
+  const iva = totalesPorMaleta.reduce((acc, t) => acc + t.iva, 0);
   const abono = maletas.reduce((acc, m) => acc + (m.comprobante?.abono ?? 0), 0);
   const saldoPendiente = total - abono;
   const hayItems = maletas.some((m) => m.items.length > 0);
@@ -222,6 +223,12 @@ export function ReciboDigital({
       </div>
 
       <div className="mt-6 rounded-xl bg-[#f8fafc] px-4 py-3">
+        {iva > 0 ? (
+          <div className="mb-3 flex items-center justify-between border-b border-[#e2e8f0] pb-3 text-xs text-[#64748b]">
+            <span>Subtotal {formatMoney(total - iva)}</span>
+            <span className="font-semibold">IVA 19 % {formatMoney(iva)}</span>
+          </div>
+        ) : null}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]">

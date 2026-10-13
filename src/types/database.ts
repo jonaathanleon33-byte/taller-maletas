@@ -93,6 +93,7 @@ export type Comprobante = {
   impuestos: number;
   abono: number;
   pagado: boolean;
+  facturacion_electronica: boolean;
   cliente_nombre: string | null;
   cliente_telefono: string | null;
   created_at: string;
@@ -225,9 +226,11 @@ export type Database = {
           | "impuestos"
           | "abono"
           | "pagado"
+          | "facturacion_electronica"
           | "cliente_nombre"
           | "cliente_telefono"
         > & {
+          facturacion_electronica?: boolean;
           orden_id?: string | null;
           metodo_pago?: MetodoPago;
           atendido_por?: string | null;

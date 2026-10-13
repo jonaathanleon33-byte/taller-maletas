@@ -17,8 +17,8 @@ type MaletaGrupo = {
 };
 
 function totalesDe(items: ComprobanteItem[], comprobante: Comprobante | null) {
-  if (!comprobante) return { subtotal: 0, total: 0 };
-  return calcularTotales(items, comprobante.descuento_global, comprobante.impuestos);
+  if (!comprobante) return { subtotal: 0, iva: 0, total: 0 };
+  return calcularTotales(items, comprobante.descuento_global, comprobante.impuestos, comprobante.facturacion_electronica);
 }
 
 export function ReciboImprimible({
@@ -48,6 +48,7 @@ export function ReciboImprimible({
   const totalesPorMaleta = maletas.map((m) => totalesDe(m.items, m.comprobante));
   const subtotal = totalesPorMaleta.reduce((acc, t) => acc + t.subtotal, 0);
   const total = totalesPorMaleta.reduce((acc, t) => acc + t.total, 0);
+  const iva = totalesPorMaleta.reduce((acc, t) => acc + t.iva, 0);
   const abono = maletas.reduce((acc, m) => acc + (m.comprobante?.abono ?? 0), 0);
   const saldoPendiente = total - abono;
   const cantidadProductos = maletas.reduce(
@@ -202,6 +203,12 @@ export function ReciboImprimible({
         <span>Subtotal:</span>
         <span>{formatMoney(subtotal)}</span>
       </div>
+      {iva > 0 ? (
+        <div className="flex justify-between">
+          <span>IVA 19%:</span>
+          <span>{formatMoney(iva)}</span>
+        </div>
+      ) : null}
       <div className="flex justify-between font-bold">
         <span>Total:</span>
         <span>{formatMoney(total)}</span>

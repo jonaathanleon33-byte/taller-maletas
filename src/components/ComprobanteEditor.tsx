@@ -19,10 +19,10 @@ export function ComprobanteEditor({
   tecnicos: string[];
   recibidoPor?: string | null;
 }) {
-  const { subtotal, total } = calcularTotales(
+  const { subtotal, iva, total } = calcularTotales(
     items,
     comprobante.descuento_global,
-    comprobante.impuestos,
+    comprobante.impuestos, comprobante.facturacion_electronica
   );
 
   return (
@@ -70,6 +70,12 @@ export function ComprobanteEditor({
             <div className="flex justify-between text-slate-600">
               <span>Impuestos</span>
               <span>{formatMoney(comprobante.impuestos)}</span>
+            </div>
+          ) : null}
+          {comprobante.facturacion_electronica ? (
+            <div className="flex justify-between text-slate-600">
+              <span>IVA (19 %) · factura electrónica</span>
+              <span>{formatMoney(iva)}</span>
             </div>
           ) : null}
           <div className="flex justify-between text-base font-semibold text-slate-900">

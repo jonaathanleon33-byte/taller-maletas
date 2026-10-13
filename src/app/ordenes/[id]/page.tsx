@@ -84,7 +84,7 @@ export default async function OrdenDetallePage({
     ? calcularTotales(
         comprobanteItems ?? [],
         comprobante.descuento_global,
-        comprobante.impuestos,
+        comprobante.impuestos, comprobante.facturacion_electronica
       ).total
     : null;
 

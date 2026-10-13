@@ -17,12 +17,19 @@ export function calcularSubtotalItem(item: {
   return bruto - bruto * (item.descuento_pct / 100);
 }
 
+export const TASA_IVA = 0.19;
+
+// Con facturación electrónica se suma el IVA (19 %) sobre el subtotal
+// menos el descuento global; sin ella el total queda como siempre.
 export function calcularTotales(
   items: { precio_unitario: number; cantidad: number; descuento_pct: number }[],
   descuentoGlobal: number,
   impuestos: number,
+  facturacionElectronica = false,
 ) {
   const subtotal = items.reduce((acc, item) => acc + calcularSubtotalItem(item), 0);
-  const total = subtotal - descuentoGlobal + impuestos;
-  return { subtotal, total };
+  const base = subtotal - descuentoGlobal;
+  const iva = facturacionElectronica ? Math.round(Math.max(base, 0) * TASA_IVA) : 0;
+  const total = base + impuestos + iva;
+  return { subtotal, iva, total };
 }
