@@ -12,7 +12,12 @@ import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
 import { calcularTotales } from "@/lib/money";
 import { formatFecha } from "@/lib/format";
-import { DIAS_ALERTA, DIAS_RENOTIFICAR, estaAtrasada } from "@/lib/estado";
+import {
+  DIAS_ALERTA,
+  DIAS_RENOTIFICAR,
+  corteRenotificar,
+  estaAtrasada,
+} from "@/lib/estado";
 import type { ComprobanteItem, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
 
@@ -69,14 +74,6 @@ function cutoffAtrasada() {
   ).toISOString();
 }
 
-// Maletas "Listas" a las que se les avisó hace DIAS_RENOTIFICAR días o
-// más y siguen sin recogerse.
-function cutoffRenotificar() {
-  return new Date(
-    Date.now() - DIAS_RENOTIFICAR * 24 * 60 * 60 * 1000,
-  ).toISOString();
-}
-
 async function buscarOrdenes(
   q: string | undefined,
   fecha: string | undefined,
@@ -100,7 +97,7 @@ async function buscarOrdenes(
   if (filtro === "renotificar") {
     query = query
       .eq("estado", "lista")
-      .lte("notificada_lista_en", cutoffRenotificar());
+      .lt("notificada_lista_en", corteRenotificar());
   } else if (filtro === "atrasada") {
     query = query.eq("estado", "recibida").lte("fecha_recibido", cutoffAtrasada());
   } else if (filtro === "recibida") {
@@ -177,7 +174,7 @@ export default async function Home({
       .from("ordenes")
       .select("id", { count: "exact", head: true })
       .eq("estado", "lista")
-      .lte("notificada_lista_en", cutoffRenotificar());
+      .lt("notificada_lista_en", corteRenotificar());
     porRenotificar = count ?? 0;
 
     const { data: todas } = await supabase
@@ -345,8 +342,8 @@ export default async function Home({
               {porRenotificar === 1
                 ? "1 cliente"
                 : `${porRenotificar} clientes`}{" "}
-              por volver a notificar (sin recoger hace {DIAS_RENOTIFICAR} días o
-              más)
+              por volver a notificar (sin recoger hace {DIAS_RENOTIFICAR} días hábiles o
+              más, de lunes a sábado)
             </span>
             <span className="shrink-0 text-xs font-semibold uppercase">
               {filtro === "renotificar" ? "Ver todas" : "Ver"}

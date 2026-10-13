@@ -74,17 +74,61 @@ export function estaAtrasada(orden: Pick<Orden, "fecha_recibido" | "estado">) {
   return orden.estado === "recibida" && diasSinEntregar(orden) > DIAS_ALERTA;
 }
 
-// Días después de avisarle al cliente que su maleta está lista, tras
-// los cuales conviene volver a avisarle si todavía no la recoge.
+// Días de trabajo (lunes a sábado; el domingo no se cuenta) después de
+// avisarle al cliente que su maleta está lista, tras los cuales conviene
+// volver a avisarle si todavía no la recoge.
 export const DIAS_RENOTIFICAR = 3;
 
-const MS_DIA = 1000 * 60 * 60 * 24;
+const ZONA = "America/Bogota";
+
+// Fecha calendario (AAAA-MM-DD) en hora de Colombia: el servidor corre
+// en UTC, y de noche ya sería "mañana" allá.
+function fechaColombia(fecha: Date) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA }).format(fecha);
+}
+
+function esDomingo(fechaIso: string) {
+  return new Date(`${fechaIso}T12:00:00Z`).getUTCDay() === 0;
+}
+
+function sumarDias(fechaIso: string, dias: number) {
+  const d = new Date(`${fechaIso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
+// Días de trabajo transcurridos desde `desde` hasta hoy, sin contar el
+// día de `desde` y sin contar domingos.
+export function diasHabilesDesde(desde: string, ahora = new Date()) {
+  const inicio = fechaColombia(new Date(desde));
+  const fin = fechaColombia(ahora);
+  let dias = 0;
+  for (let dia = sumarDias(inicio, 1); dia <= fin; dia = sumarDias(dia, 1)) {
+    if (!esDomingo(dia)) dias++;
+  }
+  return dias;
+}
+
+// Instante límite para consultar en la base: las maletas notificadas
+// antes de esto ya cumplen DIAS_RENOTIFICAR días de trabajo.
+export function corteRenotificar(ahora = new Date()) {
+  // Caminamos hacia atrás desde hoy contando días de trabajo; al
+  // terminar, `dia` es el último día en que pudo notificarse (inclusive)
+  // para que ya hayan pasado esos días. El corte es el final de ese día.
+  let dia = fechaColombia(ahora);
+  let contados = 0;
+  while (contados < DIAS_RENOTIFICAR) {
+    if (!esDomingo(dia)) contados++;
+    dia = sumarDias(dia, -1);
+  }
+  return new Date(`${sumarDias(dia, 1)}T00:00:00-05:00`).toISOString();
+}
 
 export function diasDesdeNotificacion(
   orden: Pick<Orden, "estado" | "notificada_lista_en">,
 ) {
   if (orden.estado !== "lista" || !orden.notificada_lista_en) return null;
-  return Math.floor((Date.now() - new Date(orden.notificada_lista_en).getTime()) / MS_DIA);
+  return diasHabilesDesde(orden.notificada_lista_en);
 }
 
 export function debeRenotificar(

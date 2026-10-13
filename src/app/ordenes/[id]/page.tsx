@@ -239,8 +239,9 @@ export default async function OrdenDetallePage({
 
         {renotificar ? (
           <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-center text-sm font-medium text-amber-900">
-            Hace {diasNotificada} días le avisaste a este cliente que su maleta
-            estaba lista y todavía no la recoge. Conviene volver a notificarlo.
+            Pasaron {diasNotificada} días hábiles (lunes a sábado) desde que le
+            avisaste a este cliente que su maleta estaba lista y todavía no la
+            recoge. Conviene volver a notificarlo.
           </p>
         ) : null}
 
