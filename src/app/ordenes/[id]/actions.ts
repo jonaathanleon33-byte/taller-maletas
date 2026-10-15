@@ -6,12 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 import {
   actualizarDescripcionEnSheets,
   actualizarEstadoEnSheets,
+  actualizarFechaPrometidaEnSheets,
   actualizarNombreEnSheets,
   marcarOrdenEliminadaEnSheets,
 } from "@/lib/google-sheets";
 import {
   MENSAJE_TELEFONO_INVALIDO,
   esEntregada,
+  fechaColombia,
   telefonoValido,
 } from "@/lib/estado";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
@@ -136,6 +138,50 @@ export async function actualizarNombreCliente(
 
   const ids = (actualizadas ?? []).map((o) => o.id);
   await actualizarNombreEnSheets(ids, limpio);
+
+  for (const id of ids) revalidatePath(`/ordenes/${id}`);
+  revalidatePath("/");
+  return null;
+}
+
+// Cambia la fecha prometida de entrega de esta maleta, o de todas las
+// maletas del mismo recibo si el cliente las recoge juntas.
+export async function actualizarFechaPrometida(
+  ordenId: string,
+  fecha: string,
+  aplicarATodas: boolean,
+): Promise<AccionResultado> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || Number.isNaN(Date.parse(fecha))) {
+    return { error: "Elige una fecha válida." };
+  }
+
+  const supabase = await createClient();
+  const { data: orden } = await supabase
+    .from("ordenes")
+    .select("numero_recibo, fecha_recibido")
+    .eq("id", ordenId)
+    .single();
+  if (!orden) return { error: "No se encontró la orden." };
+
+  if (fecha < fechaColombia(new Date(orden.fecha_recibido))) {
+    return {
+      error: "La fecha prometida no puede ser anterior a la fecha de recepción.",
+    };
+  }
+  if (fecha > fechaColombia(new Date(Date.now() + 2 * 365 * 864e5))) {
+    return { error: "La fecha está demasiado lejos." };
+  }
+
+  const consulta = supabase.from("ordenes").update({ fecha_prometida: fecha });
+  const { data: actualizadas, error } = await (aplicarATodas
+    ? consulta.eq("numero_recibo", orden.numero_recibo)
+    : consulta.eq("id", ordenId)
+  ).select("id");
+
+  if (error) return { error: error.message };
+
+  const ids = (actualizadas ?? []).map((o) => o.id);
+  await actualizarFechaPrometidaEnSheets(ids, fecha);
 
   for (const id of ids) revalidatePath(`/ordenes/${id}`);
   revalidatePath("/");

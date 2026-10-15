@@ -213,19 +213,19 @@ export async function marcarOrdenEliminadaEnSheets(ordenId: string) {
   }
 }
 
-const COLUMNA_NOMBRE = "B";
-
-// Cambia el nombre del cliente en las filas de varias órdenes a la vez
-// (las maletas de un mismo recibo comparten cliente).
-export async function actualizarNombreEnSheets(
+// Escribe `valor` en `columna` de las filas de varias órdenes a la vez
+// (se buscan por el id de la orden, columna O).
+async function actualizarColumnaDeOrdenes(
   ordenIds: string[],
-  nombre: string,
+  columna: string,
+  valor: string,
+  contexto: string,
 ) {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   const auth = getAuth();
 
   if (!sheetId || !auth) {
-    warnFaltanVariables("actualización de nombre");
+    warnFaltanVariables(contexto);
     return;
   }
 
@@ -239,7 +239,7 @@ export async function actualizarNombreEnSheets(
     const ids = new Set(ordenIds);
     const data = filas.flatMap((fila, i) =>
       ids.has(String(fila[0] ?? ""))
-        ? [{ range: `${SHEET_NAME}!${COLUMNA_NOMBRE}${i + 1}`, values: [[nombre]] }]
+        ? [{ range: `${SHEET_NAME}!${columna}${i + 1}`, values: [[valor]] }]
         : [],
     );
     if (data.length === 0) return;
@@ -249,6 +249,27 @@ export async function actualizarNombreEnSheets(
       requestBody: { valueInputOption: "USER_ENTERED", data },
     });
   } catch (err) {
-    console.error("No se pudo actualizar el nombre en Google Sheets:", err);
+    console.error(`No se pudo hacer la ${contexto} en Google Sheets:`, err);
   }
+}
+
+// Cambia el nombre del cliente en las filas de varias órdenes a la vez
+// (las maletas de un mismo recibo comparten cliente).
+export async function actualizarNombreEnSheets(
+  ordenIds: string[],
+  nombre: string,
+) {
+  await actualizarColumnaDeOrdenes(ordenIds, "B", nombre, "actualización de nombre");
+}
+
+export async function actualizarFechaPrometidaEnSheets(
+  ordenIds: string[],
+  fechaIso: string,
+) {
+  await actualizarColumnaDeOrdenes(
+    ordenIds,
+    "M",
+    formatFecha(fechaIso),
+    "actualización de fecha prometida",
+  );
 }

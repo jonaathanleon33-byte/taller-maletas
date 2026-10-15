@@ -9,6 +9,7 @@ import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
 import { EntregarYCobrarButton } from "@/components/EntregarYCobrarButton";
 import { actualizarNombreCliente } from "@/app/ordenes/[id]/actions";
+import { FechaPrometidaRow } from "@/components/FechaPrometidaRow";
 import { NombreClienteTitulo } from "@/components/NombreClienteTitulo";
 import { NavegacionMaletas } from "@/components/NavegacionMaletas";
 import { NotificarWhatsappButton } from "@/components/NotificarWhatsappButton";
@@ -144,9 +145,11 @@ export default async function OrdenDetallePage({
             <InfoRow label="Recibida">
               {formatFechaHora(orden.fecha_recibido)}
             </InfoRow>
-            <InfoRow label="Fecha prometida">
-              {formatFecha(orden.fecha_prometida)}
-            </InfoRow>
+            <FechaPrometidaRow
+              ordenId={orden.id}
+              fecha={orden.fecha_prometida}
+              maletasDelRecibo={(hermanas ?? []).length || 1}
+            />
             {orden.estado === "lista" ? (
               <InfoRow label="Notificado">
                 {orden.notificada_lista_en ? (
