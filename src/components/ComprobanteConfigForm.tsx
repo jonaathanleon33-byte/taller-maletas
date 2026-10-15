@@ -25,11 +25,13 @@ export function ComprobanteConfigForm({
   comprobante,
   tecnicos,
   recibidoPor,
+  maletasDelRecibo = 1,
 }: {
   path: string;
   comprobante: Comprobante;
   tecnicos: string[];
   recibidoPor?: string | null;
+  maletasDelRecibo?: number;
 }) {
   const action = actualizarComprobante.bind(
     null,
@@ -141,7 +143,7 @@ export function ComprobanteConfigForm({
         <input
           type="checkbox"
           name="facturacion_electronica"
-          checked={electronica}
+          defaultChecked={comprobante.facturacion_electronica}
           onChange={(e) => setElectronica(e.target.checked)}
           className="mt-0.5 h-4 w-4 rounded border-slate-300"
         />
@@ -149,6 +151,9 @@ export function ComprobanteConfigForm({
           <span className="font-medium text-slate-900">Facturación electrónica</span>
           <span className="block text-xs text-slate-500">
             El cliente la pidió: el total incluye el 19 % de IVA.
+            {maletasDelRecibo > 1
+              ? ` Se aplica a las ${maletasDelRecibo} maletas de este recibo.`
+              : ""}
           </span>
         </span>
       </label>

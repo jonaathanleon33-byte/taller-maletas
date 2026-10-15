@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { exportarOrdenASheets } from "@/lib/google-sheets";
+import { heredarFacturacionElectronica } from "@/lib/recibo-iva";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import { fechaHoraColombiaAIso } from "@/lib/format";
 import {
@@ -103,6 +104,7 @@ export async function crearOrden(
 
   await exportarOrdenASheets(orden);
   await supabase.from("comprobantes").insert({ orden_id: orden.id });
+  await heredarFacturacionElectronica(supabase, orden.id);
 
   let fotosFallidas = 0;
 

@@ -43,6 +43,11 @@ export default async function ComprobantePage({
         .order("created_at", { ascending: true })
     : { data: null };
 
+  const { count: maletasDelRecibo } = await supabase
+    .from("ordenes")
+    .select("id", { count: "exact", head: true })
+    .eq("numero_recibo", orden.numero_recibo);
+
   const path = `/ordenes/${orden.id}/comprobante`;
 
   return (
@@ -69,6 +74,7 @@ export default async function ComprobantePage({
               servicios={servicios ?? []}
               tecnicos={TECNICOS}
               recibidoPor={orden.recibido_por}
+              maletasDelRecibo={maletasDelRecibo ?? 1}
             />
             <div className="flex gap-2">
               <Link

@@ -8,6 +8,7 @@ import { InfoRow } from "@/components/InfoRow";
 import { TelefonoClienteRow } from "@/components/TelefonoClienteRow";
 import { TecnicoAsignadoRow } from "@/components/TecnicoAsignadoRow";
 import { EntregarYCobrarButton } from "@/components/EntregarYCobrarButton";
+import { actualizarNombreCliente } from "@/app/ordenes/[id]/actions";
 import { NombreClienteTitulo } from "@/components/NombreClienteTitulo";
 import { NavegacionMaletas } from "@/components/NavegacionMaletas";
 import { NotificarWhatsappButton } from "@/components/NotificarWhatsappButton";
@@ -116,7 +117,10 @@ export default async function OrdenDetallePage({
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
-            <NombreClienteTitulo ordenId={orden.id} nombre={orden.cliente_nombre} />
+            <NombreClienteTitulo
+              nombre={orden.cliente_nombre}
+              guardarNombre={actualizarNombreCliente.bind(null, orden.id)}
+            />
             <EstadoBadge orden={orden} />
           </div>
 

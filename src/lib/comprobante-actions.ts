@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { actualizarPrecioEnSheets } from "@/lib/google-sheets";
 import { calcularTotales } from "@/lib/money";
-import { capitalizarPrimera } from "@/lib/texto";
+import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import type { MetodoPago } from "@/types/database";
 import type { AccionResultado } from "@/lib/accion";
+import { comprobantesHermanos } from "@/lib/recibo-iva";
 
 // Después de cualquier cambio en los ítems o en descuentos/impuestos
 // del comprobante, si está asociado a una orden (no una venta
@@ -178,7 +179,60 @@ export async function actualizarComprobante(
     revalidatePath(`/ordenes/${ordenId}`);
   }
 
+  // La facturación electrónica es del cliente, no de una maleta: se
+  // aplica igual a todas las maletas del recibo, para no tener que
+  // marcarla una por una. Los totales de cada una se recalculan.
+  if (ordenId) {
+    const { comprobantes } = await comprobantesHermanos(supabase, ordenId);
+    const distintos = comprobantes.filter(
+      (c) => c.facturacion_electronica !== facturacionElectronica,
+    );
+    if (distintos.length > 0) {
+      const { error: errorHermanas } = await supabase
+        .from("comprobantes")
+        .update({ facturacion_electronica: facturacionElectronica })
+        .in(
+          "id",
+          distintos.map((c) => c.id),
+        );
+      if (errorHermanas) {
+        return {
+          error:
+            "Se guardó esta maleta, pero no se pudo aplicar a las demás del recibo: " +
+            errorHermanas.message,
+        };
+      }
+      for (const c of distintos) {
+        if (c.orden_id) revalidatePath(`/ordenes/${c.orden_id}/comprobante`);
+        await sincronizarPrecioSheets(c.id);
+      }
+    }
+  }
+
   revalidatePath(path);
   await sincronizarPrecioSheets(comprobanteId);
+  return null;
+}
+
+// Nombre del cliente de una venta directa (las órdenes de maletas
+// cambian el nombre desde la orden, ver actualizarNombreCliente).
+export async function actualizarNombreVenta(
+  comprobanteId: string,
+  nombre: string,
+): Promise<AccionResultado> {
+  const limpio = capitalizarNombre(nombre.trim().replace(/\s+/g, " "));
+  if (!limpio) return { error: "Escribe un nombre." };
+  if (limpio.length > 100) return { error: "El nombre es demasiado largo." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("comprobantes")
+    .update({ cliente_nombre: limpio })
+    .eq("id", comprobanteId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/ventas/${comprobanteId}`);
+  revalidatePath("/");
   return null;
 }

@@ -11,6 +11,7 @@ export function ComprobanteEditor({
   servicios,
   tecnicos,
   recibidoPor,
+  maletasDelRecibo,
 }: {
   path: string;
   comprobante: Comprobante;
@@ -18,6 +19,7 @@ export function ComprobanteEditor({
   servicios: Servicio[];
   tecnicos: string[];
   recibidoPor?: string | null;
+  maletasDelRecibo?: number;
 }) {
   const { subtotal, iva, total } = calcularTotales(
     items,
@@ -118,6 +120,7 @@ export function ComprobanteEditor({
         comprobante={comprobante}
         tecnicos={tecnicos}
         recibidoPor={recibidoPor}
+        maletasDelRecibo={maletasDelRecibo}
       />
     </>
   );

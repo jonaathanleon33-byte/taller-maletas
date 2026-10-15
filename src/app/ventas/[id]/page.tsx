@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { InfoRow } from "@/components/InfoRow";
+import { NombreClienteTitulo } from "@/components/NombreClienteTitulo";
+import { actualizarNombreVenta } from "@/lib/comprobante-actions";
 import { ComprobanteEditor } from "@/components/ComprobanteEditor";
 import { createClient } from "@/lib/supabase/server";
 import { linkWhatsapp, TECNICOS } from "@/lib/estado";
@@ -65,7 +67,14 @@ export default async function VentaPage({
             <InfoRow label="Nº Venta">
               {`V-${String(comprobante.numero_venta).padStart(6, "0")}`}
             </InfoRow>
-            <InfoRow label="Cliente">{comprobante.cliente_nombre}</InfoRow>
+            <div className="flex items-center justify-between gap-4 py-2 text-sm">
+              <span className="text-slate-500">Cliente</span>
+              <NombreClienteTitulo
+                compacto
+                nombre={comprobante.cliente_nombre ?? ""}
+                guardarNombre={actualizarNombreVenta.bind(null, comprobante.id)}
+              />
+            </div>
             <InfoRow label="Teléfono">{comprobante.cliente_telefono}</InfoRow>
           </div>
         </section>

@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { actualizarNombreCliente } from "@/app/ordenes/[id]/actions";
+import type { AccionResultado } from "@/lib/accion";
 
 // Nombre del cliente en el encabezado de la orden, editable. El cambio
 // aplica a todas las maletas del mismo recibo.
 export function NombreClienteTitulo({
-  ordenId,
   nombre,
+  guardarNombre,
+  compacto = false,
 }: {
-  ordenId: string;
   nombre: string;
+  guardarNombre: (nombre: string) => Promise<AccionResultado>;
+  compacto?: boolean;
 }) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(nombre);
@@ -29,7 +31,7 @@ export function NombreClienteTitulo({
       return;
     }
     startTransition(async () => {
-      const res = await actualizarNombreCliente(ordenId, valor);
+      const res = await guardarNombre(valor);
       if (res?.error) {
         setError(res.error);
         return;
@@ -57,7 +59,7 @@ export function NombreClienteTitulo({
                 cancelar();
               }
             }}
-            className="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1 text-base font-semibold text-slate-900 focus:border-slate-500 focus:outline-none"
+            className={`min-w-0 flex-1 rounded border border-slate-300 px-2 py-1 text-slate-900 focus:border-slate-500 focus:outline-none ${compacto ? "text-sm" : "text-base font-semibold"}`}
           />
           <button
             type="button"
@@ -82,7 +84,11 @@ export function NombreClienteTitulo({
   }
 
   return (
-    <h2 className="flex min-w-0 items-center gap-1.5 text-lg font-semibold text-slate-900">
+    <h2
+      className={`flex min-w-0 items-center gap-1.5 text-slate-900 ${
+        compacto ? "text-sm font-medium" : "text-lg font-semibold"
+      }`}
+    >
       <span className="truncate">{nombre}</span>
       <button
         type="button"
