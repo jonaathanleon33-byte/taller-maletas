@@ -1,17 +1,26 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { actualizarPrecioItem } from "@/lib/comprobante-actions";
+import type { AccionResultado } from "@/lib/accion";
 import { EliminarItemButton } from "@/components/EliminarItemButton";
 import { calcularSubtotalItem, formatMoney } from "@/lib/money";
-import type { ComprobanteItem } from "@/types/database";
 
+// Ítem de una factura o de una cotización: las acciones ya vienen
+// resueltas para el destino correcto.
 export function ItemRow({
-  path,
   item,
+  guardarPrecio,
+  eliminar,
 }: {
-  path: string;
-  item: ComprobanteItem;
+  item: {
+    id: string;
+    descripcion: string;
+    precio_unitario: number;
+    cantidad: number;
+    descuento_pct: number;
+  };
+  guardarPrecio: (precio: number) => Promise<AccionResultado>;
+  eliminar: () => Promise<AccionResultado>;
 }) {
   const [editando, setEditando] = useState(false);
   const [precio, setPrecio] = useState(String(item.precio_unitario));
@@ -27,7 +36,7 @@ export function ItemRow({
     const valor = Number(precio);
     if (Number.isNaN(valor) || valor < 0) return;
     startTransition(async () => {
-      const res = await actualizarPrecioItem(path, item.comprobante_id, item.id, valor);
+      const res = await guardarPrecio(valor);
       if (res?.error) {
         setError(res.error);
         return;
@@ -114,11 +123,7 @@ export function ItemRow({
         <span className="text-sm font-medium text-slate-900">
           {formatMoney(calcularSubtotalItem(item))}
         </span>
-        <EliminarItemButton
-          path={path}
-          comprobanteId={item.comprobante_id}
-          itemId={item.id}
-        />
+        <EliminarItemButton eliminar={eliminar} />
       </div>
     </li>
   );

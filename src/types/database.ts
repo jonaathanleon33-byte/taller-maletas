@@ -154,6 +154,34 @@ export type Domicilio = {
   origen: "formulario" | "manual";
 };
 
+export type EstadoCotizacion = "pendiente" | "aprobada" | "rechazada";
+
+export type Cotizacion = {
+  id: string;
+  numero: number;
+  created_at: string;
+  updated_at: string;
+  cliente_nombre: string;
+  cliente_telefono: string;
+  descripcion: string;
+  notas: string | null;
+  descuento_global: number;
+  incluye_iva: boolean;
+  vigencia_hasta: string | null;
+  estado: EstadoCotizacion;
+};
+
+export type CotizacionItem = {
+  id: string;
+  cotizacion_id: string;
+  servicio_id: string | null;
+  descripcion: string;
+  precio_unitario: number;
+  cantidad: number;
+  descuento_pct: number;
+  created_at: string;
+};
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -190,6 +218,50 @@ export type Database = {
             columns: ["orden_id"];
             isOneToOne: false;
             referencedRelation: "ordenes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cotizaciones: {
+        Row: Cotizacion;
+        Insert: Omit<
+          Cotizacion,
+          | "id"
+          | "numero"
+          | "created_at"
+          | "updated_at"
+          | "notas"
+          | "descuento_global"
+          | "incluye_iva"
+          | "vigencia_hasta"
+          | "estado"
+        > &
+          Partial<
+            Pick<
+              Cotizacion,
+              "notas" | "descuento_global" | "incluye_iva" | "vigencia_hasta" | "estado"
+            >
+          >;
+        Update: Partial<Omit<Cotizacion, "id" | "numero" | "created_at">>;
+        Relationships: [];
+      };
+      cotizacion_items: {
+        Row: CotizacionItem;
+        Insert: Omit<
+          CotizacionItem,
+          "id" | "created_at" | "descuento_pct" | "cantidad" | "servicio_id"
+        > & {
+          servicio_id?: string | null;
+          descuento_pct?: number;
+          cantidad?: number;
+        };
+        Update: Partial<Omit<CotizacionItem, "id" | "created_at">>;
+        Relationships: [
+          {
+            foreignKeyName: "cotizacion_items_cotizacion_id_fkey";
+            columns: ["cotizacion_id"];
+            isOneToOne: false;
+            referencedRelation: "cotizaciones";
             referencedColumns: ["id"];
           },
         ];

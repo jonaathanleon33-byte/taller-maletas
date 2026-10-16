@@ -1,16 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { eliminarItem } from "@/lib/comprobante-actions";
+import type { AccionResultado } from "@/lib/accion";
 
 export function EliminarItemButton({
-  path,
-  comprobanteId,
-  itemId,
+  eliminar,
 }: {
-  path: string;
-  comprobanteId: string;
-  itemId: string;
+  eliminar: () => Promise<AccionResultado>;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +17,7 @@ export function EliminarItemButton({
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const res = await eliminarItem(path, comprobanteId, itemId);
+          const res = await eliminar();
           setError(res?.error ?? null);
         })
       }

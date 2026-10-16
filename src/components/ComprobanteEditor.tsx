@@ -1,5 +1,10 @@
 import { AgregarItemForm } from "@/components/AgregarItemForm";
 import { ItemRow } from "@/components/ItemRow";
+import {
+  actualizarPrecioItem,
+  agregarItem,
+  eliminarItem,
+} from "@/lib/comprobante-actions";
 import { ComprobanteConfigForm } from "@/components/ComprobanteConfigForm";
 import { calcularTotales, formatMoney } from "@/lib/money";
 import type { Comprobante, ComprobanteItem, Servicio } from "@/types/database";
@@ -58,7 +63,12 @@ export function ComprobanteEditor({
         {items.length > 0 ? (
           <ul className="divide-y divide-slate-100">
             {items.map((item) => (
-              <ItemRow key={item.id} path={path} item={item} />
+              <ItemRow
+                key={item.id}
+                item={item}
+                guardarPrecio={actualizarPrecioItem.bind(null, path, item.comprobante_id, item.id)}
+                eliminar={eliminarItem.bind(null, path, item.comprobante_id, item.id)}
+              />
             ))}
           </ul>
         ) : (
@@ -110,8 +120,7 @@ export function ComprobanteEditor({
       </section>
 
       <AgregarItemForm
-        path={path}
-        comprobanteId={comprobante.id}
+        action={agregarItem.bind(null, path, comprobante.id)}
         servicios={servicios}
       />
 

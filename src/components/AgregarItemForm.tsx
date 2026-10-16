@@ -1,10 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import {
-  agregarItem,
-  type AgregarItemState,
-} from "@/lib/comprobante-actions";
+import type { AgregarItemState } from "@/lib/comprobante-actions";
 import { ServicioBuscador } from "@/components/ServicioBuscador";
 import type { Servicio } from "@/types/database";
 
@@ -14,16 +11,17 @@ const inputClass =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-slate-500 focus:outline-none";
 const labelClass = "mb-1 block text-sm font-medium text-slate-700";
 
+// `action` ya viene con el destino resuelto (factura o cotización).
 export function AgregarItemForm({
-  path,
-  comprobanteId,
+  action,
   servicios,
 }: {
-  path: string;
-  comprobanteId: string;
+  action: (
+    prevState: AgregarItemState,
+    formData: FormData,
+  ) => Promise<AgregarItemState>;
   servicios: Servicio[];
 }) {
-  const action = agregarItem.bind(null, path, comprobanteId);
   const [state, formAction, pending] = useActionState(action, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const [servicioId, setServicioId] = useState("");
