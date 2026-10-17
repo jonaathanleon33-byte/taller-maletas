@@ -10,12 +10,16 @@ export function MarcaSelect({
   id,
   name,
   className,
+  defaultValue = "",
+  required = true,
 }: {
   id: string;
   name: string;
   className: string;
+  defaultValue?: string;
+  required?: boolean;
 }) {
-  const [valor, setValor] = useState("");
+  const [valor, setValor] = useState(defaultValue);
   const [abierto, setAbierto] = useState(false);
   const cierre = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -44,7 +48,7 @@ export function MarcaSelect({
       <input
         id={id}
         name={name}
-        required
+        required={required}
         autoComplete="off"
         role="combobox"
         aria-expanded={abierto}

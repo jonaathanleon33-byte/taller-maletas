@@ -3,12 +3,15 @@ import { AppHeader } from "@/components/AppHeader";
 import { AgregarItemForm } from "@/components/AgregarItemForm";
 import { CotizacionAcciones } from "@/components/CotizacionAcciones";
 import { CotizacionForm } from "@/components/CotizacionForm";
+import { CotizacionFotos } from "@/components/CotizacionFotos";
+import Link from "next/link";
 import { ItemRow } from "@/components/ItemRow";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESTADOS_COTIZACION,
   estadoVisible,
   mensajeCotizacion,
+  nombreMaleta,
   numeroCotizacion,
   totalCotizacion,
 } from "@/lib/cotizaciones";
@@ -38,7 +41,7 @@ export default async function CotizacionPage({
     .maybeSingle();
   if (!cotizacion) notFound();
 
-  const [{ data: items }, { data: servicios }] = await Promise.all([
+  const [{ data: items }, { data: servicios }, { data: fotos }, { data: orden }] = await Promise.all([
     supabase
       .from("cotizacion_items")
       .select("*")
@@ -49,12 +52,21 @@ export default async function CotizacionPage({
       .select("*")
       .eq("activo", true)
       .order("nombre", { ascending: true }),
+    supabase
+      .from("cotizacion_fotos")
+      .select("*")
+      .eq("cotizacion_id", id)
+      .order("created_at", { ascending: true }),
+    cotizacion.orden_id
+      ? supabase.from("ordenes").select("id, numero_recibo").eq("id", cotizacion.orden_id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const lista = items ?? [];
   const { subtotal, iva, total } = totalCotizacion(cotizacion, lista);
   const estado = ESTADOS_COTIZACION[estadoVisible(cotizacion)];
-  const hrefOrden = `/ordenes/nueva?cliente=${encodeURIComponent(cotizacion.cliente_nombre)}&telefono=${encodeURIComponent(cotizacion.cliente_telefono)}`;
+  const convertida = Boolean(cotizacion.orden_id);
+  const hrefOrden = convertida ? undefined : `/ordenes/nueva?cotizacion=${id}`;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -74,12 +86,32 @@ export default async function CotizacionPage({
               {estado.label}
             </span>
           </div>
+          {nombreMaleta(cotizacion) ? (
+            <p className="text-sm font-medium text-slate-800">{nombreMaleta(cotizacion)}</p>
+          ) : null}
           <p className="text-sm text-slate-700">{cotizacion.descripcion}</p>
           {cotizacion.vigencia_hasta ? (
             <p className="mt-1 text-xs text-slate-400">Válida hasta el {formatFecha(cotizacion.vigencia_hasta)}</p>
           ) : null}
           {cotizacion.notas ? <p className="mt-1 text-xs italic text-slate-500">“{cotizacion.notas}”</p> : null}
         </section>
+
+        {convertida ? (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+            Esta cotización ya se convirtió en una orden
+            {orden ? (
+              <>
+                {": "}
+                <Link href={`/ordenes/${orden.id}`} className="font-semibold underline">
+                  recibo #{orden.numero_recibo}
+                </Link>
+              </>
+            ) : null}
+            .
+          </div>
+        ) : null}
+
+        <CotizacionFotos cotizacionId={id} fotos={fotos ?? []} bloqueada={convertida} />
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Ítems</h2>

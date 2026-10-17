@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { BotonImprimir } from "@/components/BotonImprimir";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
-import { numeroCotizacion, totalCotizacion } from "@/lib/cotizaciones";
+import { nombreMaleta, numeroCotizacion, totalCotizacion } from "@/lib/cotizaciones";
 import { formatFecha, formatFechaHora } from "@/lib/format";
 import { calcularSubtotalItem, formatMoney } from "@/lib/money";
 
@@ -65,7 +65,7 @@ export default async function ImprimirCotizacionPage({
       <div className="mt-4 text-sm text-slate-800">
         <p><span className="font-semibold">Cliente:</span> {cotizacion.cliente_nombre}</p>
         <p><span className="font-semibold">Teléfono:</span> {cotizacion.cliente_telefono}</p>
-        <p><span className="font-semibold">Maleta:</span> {cotizacion.descripcion}</p>
+        <p><span className="font-semibold">Maleta:</span> {nombreMaleta(cotizacion) ? `${nombreMaleta(cotizacion)} · ` : ""}{cotizacion.descripcion}</p>
       </div>
 
       <table className="mt-4 w-full text-sm">

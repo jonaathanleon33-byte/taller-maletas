@@ -23,6 +23,7 @@ export function NuevaOrdenForm({
   tecnicos,
   clientes,
   prefill,
+  cotizacion,
 }: {
   tecnicos: string[];
   clientes: Cliente[];
@@ -31,11 +32,25 @@ export function NuevaOrdenForm({
     cliente_nombre?: string;
     cliente_telefono?: string;
   };
+  // Datos de la cotización que se está convirtiendo en orden.
+  cotizacion?: {
+    id: string;
+    numero: number;
+    cliente_nombre?: string;
+    cliente_telefono?: string;
+    marca: string;
+    color: string;
+    tamano: string;
+    tipo: string;
+    descripcion: string;
+    fotos: string[];
+  };
 }) {
   const [state, formAction, pending] = useActionState(
     crearOrden,
     initialState,
   );
+  const fotosCotizacion = cotizacion?.fotos.length ?? 0;
   const [fotos, setFotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [comprimiendo, setComprimiendo] = useState(false);
@@ -84,7 +99,7 @@ export function NuevaOrdenForm({
     e.target.value = "";
     if (nuevos.length === 0) return;
 
-    const espacio = MAX_FOTOS - fotos.length;
+    const espacio = MAX_FOTOS - fotosCotizacion - fotos.length;
     const aAgregar = nuevos.slice(0, Math.max(espacio, 0));
     if (aAgregar.length === 0) return;
 
@@ -93,7 +108,7 @@ export function NuevaOrdenForm({
       const comprimidas = await Promise.all(
         aAgregar.map((f) => comprimirImagen(f)),
       );
-      setFotos((prev) => [...prev, ...comprimidas].slice(0, MAX_FOTOS));
+      setFotos((prev) => [...prev, ...comprimidas].slice(0, MAX_FOTOS - fotosCotizacion));
       setPreviews((prev) => [
         ...prev,
         ...comprimidas.map((f) => URL.createObjectURL(f)),
@@ -113,6 +128,17 @@ export function NuevaOrdenForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-4 pb-10">
+      {cotizacion ? (
+        <>
+          <input type="hidden" name="cotizacion_id" value={cotizacion.id} />
+          <p className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+            Creando la orden desde la cotización COT-{String(cotizacion.numero).padStart(4, "0")}. Los
+            ítems con sus precios y las fotos del cliente pasan solos a la
+            orden y a su factura.
+          </p>
+        </>
+      ) : null}
+
       <section className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
           Recibo y cliente
@@ -198,13 +224,13 @@ export function NuevaOrdenForm({
             <label className={labelClass} htmlFor="marca">
               Marca *
             </label>
-            <MarcaSelect id="marca" name="marca" className={inputClass} />
+            <MarcaSelect id="marca" name="marca" defaultValue={cotizacion?.marca ?? ""} className={inputClass} />
           </div>
           <div>
             <label className={labelClass} htmlFor="color">
               Color *
             </label>
-            <input id="color" name="color" required className={inputClass} />
+            <input id="color" name="color" required defaultValue={cotizacion?.color ?? ""} className={inputClass} />
           </div>
         </div>
 
@@ -217,7 +243,7 @@ export function NuevaOrdenForm({
               id="tamano"
               name="tamano"
               required
-              defaultValue=""
+              defaultValue={cotizacion?.tamano ?? ""}
               className={inputClass}
             >
               <option value="" disabled>
@@ -238,7 +264,7 @@ export function NuevaOrdenForm({
               id="tipo"
               name="tipo"
               required
-              defaultValue=""
+              defaultValue={cotizacion?.tipo ?? ""}
               className={inputClass}
             >
               <option value="" disabled>
@@ -262,6 +288,7 @@ export function NuevaOrdenForm({
             name="dano_descripcion"
             required
             rows={3}
+            defaultValue={cotizacion?.descripcion ?? ""}
             className={inputClass}
             placeholder="Ej: Rueda delantera derecha rota, cierre trabado"
           />
@@ -270,9 +297,22 @@ export function NuevaOrdenForm({
 
       <section className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-          Fotos ({fotos.length}/{MAX_FOTOS}) *
+          Fotos ({fotos.length + fotosCotizacion}/{MAX_FOTOS}) *
         </h2>
-        {fotos.length < MAX_FOTOS ? (
+        {cotizacion && cotizacion.fotos.length > 0 ? (
+          <div>
+            <p className="mb-2 text-xs text-slate-500">
+              Fotos de la cotización COT-{String(cotizacion.numero).padStart(4, "0")}: pasan a la orden.
+            </p>
+            <div className="flex gap-2">
+              {cotizacion.fotos.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={src} alt={`Foto de la cotización ${i + 1}`} className="h-20 w-20 rounded-lg object-cover" />
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {fotos.length + fotosCotizacion < MAX_FOTOS ? (
           <input
             ref={fileInputRef}
             type="file"
@@ -280,7 +320,7 @@ export function NuevaOrdenForm({
             accept="image/*"
             capture="environment"
             multiple
-            required={fotos.length === 0}
+            required={fotos.length + fotosCotizacion === 0}
             onChange={handleFotos}
             className="text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
           />
@@ -288,7 +328,7 @@ export function NuevaOrdenForm({
           <>
             <input ref={fileInputRef} type="file" name="fotos" className="hidden" />
             <p className="text-sm text-slate-500">
-              Ya agregaste {MAX_FOTOS} fotos. Quita una para agregar otra.
+              Ya hay {MAX_FOTOS} fotos. Quita una para agregar otra.
             </p>
           </>
         )}

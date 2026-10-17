@@ -15,7 +15,7 @@ export function CotizacionAcciones({
   id: string;
   estado: EstadoCotizacion;
   hrefWhatsapp: string;
-  hrefOrden: string;
+  hrefOrden?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -58,9 +58,11 @@ export function CotizacionAcciones({
         )}
       </div>
 
-      <a href={hrefOrden} className={`${boton} bg-slate-900 text-white active:bg-slate-700`}>
-        Crear orden con estos datos
-      </a>
+      {hrefOrden ? (
+        <a href={hrefOrden} className={`${boton} bg-slate-900 text-white active:bg-slate-700`}>
+          Convertir en orden
+        </a>
+      ) : null}
 
       {confirmando ? (
         <div className="flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm">

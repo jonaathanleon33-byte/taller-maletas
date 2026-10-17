@@ -169,6 +169,18 @@ export type Cotizacion = {
   incluye_iva: boolean;
   vigencia_hasta: string | null;
   estado: EstadoCotizacion;
+  marca: string | null;
+  color: string | null;
+  tamano: string | null;
+  tipo: string | null;
+  orden_id: string | null;
+};
+
+export type CotizacionFoto = {
+  id: string;
+  cotizacion_id: string;
+  url: string;
+  created_at: string;
 };
 
 export type CotizacionItem = {
@@ -235,11 +247,25 @@ export type Database = {
           | "incluye_iva"
           | "vigencia_hasta"
           | "estado"
+          | "marca"
+          | "color"
+          | "tamano"
+          | "tipo"
+          | "orden_id"
         > &
           Partial<
             Pick<
               Cotizacion,
-              "notas" | "descuento_global" | "incluye_iva" | "vigencia_hasta" | "estado"
+              | "notas"
+              | "descuento_global"
+              | "incluye_iva"
+              | "vigencia_hasta"
+              | "estado"
+              | "marca"
+              | "color"
+              | "tamano"
+              | "tipo"
+              | "orden_id"
             >
           >;
         Update: Partial<Omit<Cotizacion, "id" | "numero" | "created_at">>;
@@ -259,6 +285,20 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cotizacion_items_cotizacion_id_fkey";
+            columns: ["cotizacion_id"];
+            isOneToOne: false;
+            referencedRelation: "cotizaciones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cotizacion_fotos: {
+        Row: CotizacionFoto;
+        Insert: Omit<CotizacionFoto, "id" | "created_at">;
+        Update: Partial<Omit<CotizacionFoto, "id" | "created_at">>;
+        Relationships: [
+          {
+            foreignKeyName: "cotizacion_fotos_cotizacion_id_fkey";
             columns: ["cotizacion_id"];
             isOneToOne: false;
             referencedRelation: "cotizaciones";

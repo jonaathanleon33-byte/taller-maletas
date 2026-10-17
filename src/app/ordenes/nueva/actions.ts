@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { exportarOrdenASheets } from "@/lib/google-sheets";
 import { heredarFacturacionElectronica } from "@/lib/recibo-iva";
+import { aplicarCotizacionAOrden } from "@/lib/cotizacion-conversion";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import { fechaHoraColombiaAIso } from "@/lib/format";
 import {
@@ -68,15 +69,35 @@ export async function crearOrden(
     .getAll("fotos")
     .filter((f): f is File => f instanceof File && f.size > 0);
 
-  if (fotos.length < 1 || fotos.length > 3) {
+  const supabase = await createClient();
+
+  // Si viene de una cotización, sus fotos cuentan para las 1 a 3 que
+  // exige la orden (se copian a ella al crearla).
+  const cotizacionId = campoRequerido(formData, "cotizacion_id") || null;
+  let fotosDeCotizacion = 0;
+  if (cotizacionId) {
+    const { data: cot } = await supabase
+      .from("cotizaciones")
+      .select("orden_id")
+      .eq("id", cotizacionId)
+      .maybeSingle();
+    if (!cot) return { error: "No se encontró la cotización." };
+    if (cot.orden_id) return { error: "Esta cotización ya se convirtió en una orden." };
+    const { count } = await supabase
+      .from("cotizacion_fotos")
+      .select("id", { count: "exact", head: true })
+      .eq("cotizacion_id", cotizacionId);
+    fotosDeCotizacion = count ?? 0;
+  }
+
+  const totalFotos = fotos.length + fotosDeCotizacion;
+  if (totalFotos < 1 || totalFotos > 3) {
     return { error: "Sube entre 1 y 3 fotos de la maleta." };
   }
 
   const fecha_recibido = fecha_recibidoRaw
     ? fechaHoraColombiaAIso(fecha_recibidoRaw)
     : new Date().toISOString();
-
-  const supabase = await createClient();
 
   const { data: orden, error: insertError } = await supabase
     .from("ordenes")
@@ -105,6 +126,7 @@ export async function crearOrden(
   await exportarOrdenASheets(orden);
   await supabase.from("comprobantes").insert({ orden_id: orden.id });
   await heredarFacturacionElectronica(supabase, orden.id);
+  if (cotizacionId) await aplicarCotizacionAOrden(supabase, cotizacionId, orden.id);
 
   let fotosFallidas = 0;
 

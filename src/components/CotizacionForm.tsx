@@ -6,6 +6,8 @@ import {
   crearCotizacion,
   type CotizacionFormState,
 } from "@/app/cotizaciones/actions";
+import { MarcaSelect } from "@/components/MarcaSelect";
+import { TAMANO_LABELS, TIPO_LABELS } from "@/lib/estado";
 import { fechaColombiaMasDias } from "@/lib/format";
 import type { Cotizacion } from "@/types/database";
 
@@ -41,9 +43,37 @@ export function CotizacionForm({ cotizacion }: { cotizacion?: Cotizacion }) {
         <label className={labelClass} htmlFor="cliente_telefono">Teléfono (WhatsApp) *</label>
         <input id="cliente_telefono" name="cliente_telefono" type="tel" inputMode="tel" required defaultValue={cotizacion?.cliente_telefono} placeholder="Ej: 3001234567" className={inputClass} />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass} htmlFor="marca">Marca</label>
+          <MarcaSelect id="marca" name="marca" required={false} defaultValue={cotizacion?.marca ?? ""} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="color">Color</label>
+          <input id="color" name="color" defaultValue={cotizacion?.color ?? ""} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="tamano">Tamaño</label>
+          <select id="tamano" name="tamano" defaultValue={cotizacion?.tamano ?? ""} className={inputClass}>
+            <option value="">Sin definir</option>
+            {Object.entries(TAMANO_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="tipo">Tipo</label>
+          <select id="tipo" name="tipo" defaultValue={cotizacion?.tipo ?? ""} className={inputClass}>
+            <option value="">Sin definir</option>
+            {Object.entries(TIPO_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       <div>
-        <label className={labelClass} htmlFor="descripcion">Maleta y reparación a cotizar *</label>
-        <textarea id="descripcion" name="descripcion" required rows={2} maxLength={300} defaultValue={cotizacion?.descripcion} placeholder="Ej: Samsonite negra mediana, ruedas y cierre" className={inputClass} />
+        <label className={labelClass} htmlFor="descripcion">Reparación a cotizar *</label>
+        <textarea id="descripcion" name="descripcion" required rows={2} maxLength={300} defaultValue={cotizacion?.descripcion} placeholder="Ej: Ruedas y cierre" className={inputClass} />
       </div>
       <div>
         <label className={labelClass} htmlFor="vigencia_hasta">Válida hasta</label>

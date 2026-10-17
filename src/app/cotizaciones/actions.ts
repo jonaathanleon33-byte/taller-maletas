@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MENSAJE_TELEFONO_INVALIDO, telefonoValido } from "@/lib/estado";
+import {
+  MENSAJE_TELEFONO_INVALIDO,
+  TAMANO_LABELS,
+  TIPO_LABELS,
+  telefonoValido,
+} from "@/lib/estado";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
 import type { AccionResultado } from "@/lib/accion";
 import type { AgregarItemState } from "@/lib/comprobante-actions";
@@ -22,6 +27,10 @@ function validarDatos(formData: FormData) {
     descripcion: capitalizarPrimera(campo(formData, "descripcion")),
     notas: capitalizarPrimera(campo(formData, "notas")),
     vigencia_hasta: campo(formData, "vigencia_hasta"),
+    marca: capitalizarPrimera(campo(formData, "marca")),
+    color: capitalizarPrimera(campo(formData, "color")),
+    tamano: campo(formData, "tamano"),
+    tipo: campo(formData, "tipo"),
   };
   if (!datos.cliente_nombre || !datos.cliente_telefono || !datos.descripcion) {
     return { error: "Completa el nombre, el teléfono y la descripción de la maleta." };
@@ -31,6 +40,11 @@ function validarDatos(formData: FormData) {
   }
   if (datos.cliente_nombre.length > 100 || datos.descripcion.length > 300 || datos.notas.length > 500) {
     return { error: "Alguno de los textos es demasiado largo." };
+  }
+  if (datos.tamano && !(datos.tamano in TAMANO_LABELS)) return { error: "El tamaño no es válido." };
+  if (datos.tipo && !(datos.tipo in TIPO_LABELS)) return { error: "El tipo no es válido." };
+  if (datos.marca.length > 60 || datos.color.length > 60) {
+    return { error: "La marca o el color son demasiado largos." };
   }
   if (datos.vigencia_hasta && !/^\d{4}-\d{2}-\d{2}$/.test(datos.vigencia_hasta)) {
     return { error: "La fecha de vigencia no es válida." };
@@ -54,6 +68,10 @@ export async function crearCotizacion(
       descripcion: r.datos.descripcion,
       notas: r.datos.notas || null,
       vigencia_hasta: r.datos.vigencia_hasta || null,
+      marca: r.datos.marca || null,
+      color: r.datos.color || null,
+      tamano: r.datos.tamano || null,
+      tipo: r.datos.tipo || null,
     })
     .select("id")
     .single();
@@ -88,6 +106,10 @@ export async function actualizarCotizacion(
       descripcion: r.datos.descripcion,
       notas: r.datos.notas || null,
       vigencia_hasta: r.datos.vigencia_hasta || null,
+      marca: r.datos.marca || null,
+      color: r.datos.color || null,
+      tamano: r.datos.tamano || null,
+      tipo: r.datos.tipo || null,
       descuento_global: descuento,
       incluye_iva: formData.get("incluye_iva") === "on",
     })
@@ -178,4 +200,77 @@ export async function eliminarCotizacion(id: string): Promise<AccionResultado> {
   if (error) return { error: error.message };
   revalidatePath("/cotizaciones");
   redirect("/cotizaciones");
+}
+
+export const MAX_FOTOS_COTIZACION = 3;
+
+// Fotos que el cliente manda por WhatsApp (se guardan desde la
+// galería del teléfono o el computador). Se suben al mismo bucket que
+// las fotos de las órdenes.
+export async function agregarFotosCotizacion(
+  cotizacionId: string,
+  formData: FormData,
+): Promise<AccionResultado> {
+  const archivos = formData
+    .getAll("fotos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (archivos.length === 0) return { error: "Elige al menos una foto." };
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("cotizacion_fotos")
+    .select("id", { count: "exact", head: true })
+    .eq("cotizacion_id", cotizacionId);
+
+  const espacio = MAX_FOTOS_COTIZACION - (count ?? 0);
+  if (espacio <= 0) {
+    return { error: `Ya hay ${MAX_FOTOS_COTIZACION} fotos. Quita una para agregar otra.` };
+  }
+
+  let fallidas = 0;
+  for (const [i, archivo] of archivos.slice(0, espacio).entries()) {
+    const ext = archivo.name.split(".").pop()?.toLowerCase() || "jpg";
+    const ruta = `cotizaciones/${cotizacionId}/${Date.now()}-${i}.${ext}`;
+    const { error: errorSubida } = await supabase.storage
+      .from("fotos-ordenes")
+      .upload(ruta, archivo, { contentType: archivo.type || "image/jpeg" });
+    if (errorSubida) {
+      fallidas++;
+      continue;
+    }
+    const { data: publica } = supabase.storage.from("fotos-ordenes").getPublicUrl(ruta);
+    const { error: errorFila } = await supabase
+      .from("cotizacion_fotos")
+      .insert({ cotizacion_id: cotizacionId, url: publica.publicUrl });
+    if (errorFila) fallidas++;
+  }
+
+  revalidatePath(`/cotizaciones/${cotizacionId}`);
+  if (fallidas > 0) {
+    return { error: `No se pudieron subir ${fallidas} ${fallidas === 1 ? "foto" : "fotos"}. Inténtalo de nuevo.` };
+  }
+  return null;
+}
+
+export async function eliminarFotoCotizacion(
+  cotizacionId: string,
+  fotoId: string,
+): Promise<AccionResultado> {
+  const supabase = await createClient();
+  const { data: foto } = await supabase
+    .from("cotizacion_fotos")
+    .select("url")
+    .eq("id", fotoId)
+    .maybeSingle();
+
+  const { error } = await supabase.from("cotizacion_fotos").delete().eq("id", fotoId);
+  if (error) return { error: error.message };
+
+  // Si la foto ya se copió a una orden, el archivo de la orden es otro;
+  // aquí solo se limpia el de la cotización (sin fallar si no se puede).
+  const ruta = foto?.url.split("/fotos-ordenes/")[1];
+  if (ruta) await supabase.storage.from("fotos-ordenes").remove([ruta]);
+
+  revalidatePath(`/cotizaciones/${cotizacionId}`);
+  return null;
 }
