@@ -8,7 +8,14 @@ import {
 
 const initialState: EliminarOrdenState = null;
 
-export function EliminarOrdenButton({ ordenId }: { ordenId: string }) {
+export function EliminarOrdenButton({
+  ordenId,
+  otrasMaletas = 0,
+}: {
+  ordenId: string;
+  otrasMaletas?: number;
+}) {
+  const varias = otrasMaletas > 0;
   const [confirming, setConfirming] = useState(false);
   const action = eliminarOrden.bind(null, ordenId);
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -20,7 +27,7 @@ export function EliminarOrdenButton({ ordenId }: { ordenId: string }) {
         onClick={() => setConfirming(true)}
         className="w-full rounded-lg border border-red-300 py-3 text-center text-sm font-semibold text-red-600 active:bg-red-50"
       >
-        Eliminar orden
+        {varias ? "Eliminar solo esta maleta" : "Eliminar orden"}
       </button>
     );
   }
@@ -28,8 +35,9 @@ export function EliminarOrdenButton({ ordenId }: { ordenId: string }) {
   return (
     <div className="rounded-lg border border-red-300 bg-red-50 p-4">
       <p className="mb-3 text-sm text-red-800">
-        ¿Eliminar esta orden? Se borran también sus fotos y su historial.
-        Esta acción no se puede deshacer.
+        {varias
+          ? `¿Eliminar solo esta maleta? Se borran su factura, sus fotos y su historial. Las otras ${otrasMaletas} ${otrasMaletas === 1 ? "maleta" : "maletas"} del recibo y su factura no se tocan. Esta acción no se puede deshacer.`
+          : "¿Eliminar esta orden? Se borran también sus fotos y su historial. Esta acción no se puede deshacer."}
       </p>
       <div className="flex gap-2">
         <button

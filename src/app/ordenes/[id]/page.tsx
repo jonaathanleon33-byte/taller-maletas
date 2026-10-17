@@ -315,7 +315,10 @@ export default async function OrdenDetallePage({
           </section>
         ) : null}
 
-        <EliminarOrdenButton ordenId={orden.id} />
+        <EliminarOrdenButton
+          ordenId={orden.id}
+          otrasMaletas={Math.max((hermanas ?? []).length - 1, 0)}
+        />
       </main>
     </div>
   );

@@ -398,6 +398,23 @@ export async function eliminarOrden(
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const supabase = await createClient();
 
+  // Si el recibo tiene más maletas, solo se elimina ésta (con su propia
+  // factura); las demás y su factura quedan intactas y se vuelve a una
+  // de ellas en vez de al inicio.
+  const { data: actual } = await supabase
+    .from("ordenes")
+    .select("numero_recibo")
+    .eq("id", ordenId)
+    .maybeSingle();
+  const { data: otras } = actual
+    ? await supabase
+        .from("ordenes")
+        .select("id")
+        .eq("numero_recibo", actual.numero_recibo)
+        .neq("id", ordenId)
+        .order("created_at", { ascending: true })
+    : { data: null };
+
   const { data: fotos } = await supabase
     .from("fotos")
     .select("url")
@@ -420,5 +437,10 @@ export async function eliminarOrden(
   await marcarOrdenEliminadaEnSheets(ordenId);
 
   revalidatePath("/");
+  const siguiente = otras?.[0]?.id;
+  if (siguiente) {
+    revalidatePath(`/ordenes/${siguiente}`);
+    redirect(`/ordenes/${siguiente}`);
+  }
   redirect("/");
 }
