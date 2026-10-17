@@ -202,7 +202,7 @@ export async function eliminarCotizacion(id: string): Promise<AccionResultado> {
   redirect("/cotizaciones");
 }
 
-export const MAX_FOTOS_COTIZACION = 3;
+const MAX_FOTOS_COTIZACION = 3;
 
 // Fotos que el cliente manda por WhatsApp (se guardan desde la
 // galería del teléfono o el computador). Se suben al mismo bucket que
