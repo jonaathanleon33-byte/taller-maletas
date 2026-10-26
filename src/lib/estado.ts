@@ -241,6 +241,11 @@ export function estadoDotClass(estado: Estado) {
 
 // Texto que se agrega al aviso de "ya está lista" desde la segunda
 // notificación en adelante: plazo para recoger, bodegaje y destrucción.
+// Aviso que lleva el PRIMER mensaje de "ya está lista": plazo para
+// recoger y bodegaje si pasa de ese plazo.
+export const BODEGAJE_PRIMER_AVISO = 30000;
+export const AVISO_PRIMER_AVISO = `Tienes ${DIAS_PLAZO_RECOGIDA} días hábiles (lunes a sábado) a partir de este aviso para recoger tu maleta; pasado ese plazo se cobrará un bodegaje de $${BODEGAJE_PRIMER_AVISO.toLocaleString("es-CO")}.`;
+
 export const AVISO_PLAZO_RECOGIDA =
   "Después de este segundo aviso tienes 6 días hábiles para recoger tus pertenencias (maletas o morrales). " +
   "Nuestro horario es de lunes a viernes de 9:00 a. m. a 6:00 p. m. y sábados de 9:00 a. m. a 4:00 p. m. " +
@@ -261,7 +266,7 @@ export function mensajeWhatsapp(
       if (orden.notificada_lista_en) {
         return `Hola ${nombre}, te recordamos que tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar en nuestro centro técnico. ${AVISO_PLAZO_RECOGIDA}`;
       }
-      return `Hola ${nombre}, ¡buenas noticias! Tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar. Te esperamos en nuestro centro técnico.`;
+      return `Hola ${nombre}, ¡buenas noticias! Tu maleta ${maleta} (recibo #${orden.numero_recibo}) ya está lista para retirar. Te esperamos en nuestro centro técnico. ${AVISO_PRIMER_AVISO}`;
     case "entregada":
       return `Hola ${nombre}, gracias por retirar tu maleta ${maleta} (recibo #${orden.numero_recibo}). ¡Cualquier consulta estamos a disposición!`;
     case "entregada_sin_reparar":
@@ -319,5 +324,5 @@ export function mensajeListaGrupo(
   if (ordenes.some((o) => o.notificada_lista_en)) {
     return `Hola ${nombre}, te recordamos que tus maletas ${detalle} ya están listas para retirar en nuestro centro técnico. ${AVISO_PLAZO_RECOGIDA}`;
   }
-  return `Hola ${nombre}, ¡buenas noticias! Tus maletas ${detalle} ya están listas para retirar. Te esperamos en nuestro centro técnico.`;
+  return `Hola ${nombre}, ¡buenas noticias! Tus maletas ${detalle} ya están listas para retirar. Te esperamos en nuestro centro técnico. ${AVISO_PRIMER_AVISO.replace("tu maleta", "tus maletas")}`;
 }
