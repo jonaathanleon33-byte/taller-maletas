@@ -13,16 +13,16 @@ import { MascotasAmbiente } from "@/components/MascotasAmbiente";
 import { ActualizacionAutomatica } from "@/components/ActualizacionAutomatica";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerNegocioConfig } from "@/lib/negocio";
-import { calcularTotales, formatMoney } from "@/lib/money";
+import { calcularTotales } from "@/lib/money";
 import { formatFecha } from "@/lib/format";
 import {
   DIAS_ALERTA,
   DIAS_RENOTIFICAR,
-  BODEGAJE,
   DIAS_PLAZO_RECOGIDA,
   corteDiasHabiles,
   corteRenotificar,
   fechaColombia,
+  inicioBodegajePrimerAvisoIso,
   } from "@/lib/estado";
 import type { ComprobanteItem, Estado, Orden } from "@/types/database";
 import type { ComprobanteResumen } from "@/components/OrdenCard";
@@ -104,7 +104,7 @@ async function buscarOrdenes(
   } else if (filtro === "renotificar") {
     query = query.order("notificada_lista_en", { ascending: true });
   } else if (filtro === "bodegaje") {
-    query = query.order("segunda_notificacion_en", { ascending: true });
+    query = query.order("notificada_lista_en", { ascending: true });
   } else if (filtro === "atrasada") {
     query = query.order("fecha_recibido", { ascending: true });
   } else {
@@ -117,9 +117,12 @@ async function buscarOrdenes(
       .is("segunda_notificacion_en", null)
       .lt("notificada_lista_en", corteRenotificar());
   } else if (filtro === "bodegaje") {
+    const corte = corteDiasHabiles(DIAS_PLAZO_RECOGIDA);
     query = query
       .eq("estado", "lista")
-      .lt("segunda_notificacion_en", corteDiasHabiles(DIAS_PLAZO_RECOGIDA));
+      .or(
+        `segunda_notificacion_en.lt.${corte},and(segunda_notificacion_en.is.null,notificada_lista_en.lt.${corte},notificada_lista_en.gte.${inicioBodegajePrimerAvisoIso()})`,
+      );
   } else if (filtro === "atrasada") {
     query = query.eq("estado", "recibida").lte("fecha_recibido", cutoffAtrasada());
   } else if (filtro === "recibida") {
@@ -250,9 +253,8 @@ export default async function Home({
         contar("lista")
           .is("segunda_notificacion_en", null)
           .lt("notificada_lista_en", corteRenotificar()),
-        contar("lista").lt(
-          "segunda_notificacion_en",
-          corteDiasHabiles(DIAS_PLAZO_RECOGIDA),
+        contar("lista").or(
+          `segunda_notificacion_en.lt.${corteDiasHabiles(DIAS_PLAZO_RECOGIDA)},and(segunda_notificacion_en.is.null,notificada_lista_en.lt.${corteDiasHabiles(DIAS_PLAZO_RECOGIDA)},notificada_lista_en.gte.${inicioBodegajePrimerAvisoIso()})`,
         ),
       ]);
 
@@ -449,7 +451,7 @@ export default async function Home({
             <span>
               {porBodegaje === 1 ? "1 maleta" : `${porBodegaje} maletas`} con el
               plazo vencido ({DIAS_PLAZO_RECOGIDA} días hábiles después del
-              segundo aviso): cobrar bodegaje de {formatMoney(BODEGAJE)}
+              aviso de maleta lista): cobrar bodegaje
             </span>
             <span className="shrink-0 text-xs font-semibold uppercase">
               {filtro === "bodegaje" ? "Ver todas" : "Ver"}

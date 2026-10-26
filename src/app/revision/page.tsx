@@ -2,11 +2,10 @@ import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/server";
 import {
-  BODEGAJE,
+  bodegajePendiente,
   destruccionVencida,
   fechaColombia,
   fechaDestruccion,
-  plazoVencido,
   telefonoValido,
 } from "@/lib/estado";
 import { formatFecha } from "@/lib/format";
@@ -126,21 +125,24 @@ export default async function RevisionPage() {
     }
   }
 
-  const bodegajePendiente: Hallazgo[] = [];
+  const bodegajePorCobrar: Hallazgo[] = [];
   const paraDestruccion: Hallazgo[] = [];
   for (const o of ordenes) {
-    if (!o.segunda_notificacion_en) continue;
-    if (destruccionVencida(o)) {
+    if (destruccionVencida(o) && o.segunda_notificacion_en) {
       paraDestruccion.push({
         href: `/ordenes/${o.id}`,
         titulo: etiqueta(o),
         detalle: `Segundo aviso: ${formatFecha(o.segunda_notificacion_en)} · destrucción desde el ${formatFecha(fechaDestruccion(o.segunda_notificacion_en))}.`,
       });
-    } else if (plazoVencido(o)) {
-      bodegajePendiente.push({
+      continue;
+    }
+    const bodegaje = bodegajePendiente(o);
+    if (bodegaje) {
+      const aviso = bodegaje.desde === "segundo" ? o.segunda_notificacion_en : o.notificada_lista_en;
+      bodegajePorCobrar.push({
         href: `/ordenes/${o.id}`,
         titulo: etiqueta(o),
-        detalle: `Segundo aviso: ${formatFecha(o.segunda_notificacion_en)} · plazo vencido, cobrar bodegaje ${formatMoney(BODEGAJE)}.`,
+        detalle: `${bodegaje.desde === "segundo" ? "Segundo aviso" : "Aviso"}: ${formatFecha(aviso)} · plazo vencido, cobrar bodegaje ${formatMoney(bodegaje.monto)}.`,
       });
     }
   }
@@ -179,8 +181,8 @@ export default async function RevisionPage() {
     },
     {
       titulo: "Bodegaje por cobrar",
-      ayuda: "Pasaron 6 días hábiles desde el segundo aviso y siguen sin recogerse.",
-      lista: bodegajePendiente,
+      ayuda: "Pasaron 6 días hábiles desde el aviso de maleta lista y siguen sin recogerse.",
+      lista: bodegajePorCobrar,
     },
     {
       titulo: "Para enviar a destrucción",

@@ -20,14 +20,13 @@ import {
   TAMANO_LABELS,
   TECNICOS,
   TIPO_LABELS,
-  BODEGAJE,
   DIAS_PLAZO_RECOGIDA,
+  bodegajePendiente,
   debeRenotificar,
   destruccionVencida,
   diasDesdeNotificacion,
   esEntregada,
   fechaDestruccion,
-  plazoVencido,
   linkWhatsapp,
   mensajeWhatsapp,
 } from "@/lib/estado";
@@ -95,7 +94,7 @@ export default async function OrdenDetallePage({
   const whatsappHref = linkWhatsapp(orden.cliente_telefono, mensaje);
   const renotificar = debeRenotificar(orden);
   const diasNotificada = diasDesdeNotificacion(orden);
-  const vencido = plazoVencido(orden);
+  const bodegaje = bodegajePendiente(orden);
   const paraDestruccion = destruccionVencida(orden);
 
   return (
@@ -163,7 +162,7 @@ export default async function OrdenDetallePage({
             ) : null}
             {orden.estado === "lista" && orden.segunda_notificacion_en ? (
               <InfoRow label="Segundo aviso">
-                <span className={vencido ? "font-semibold text-red-700" : ""}>
+                <span className={bodegaje ? "font-semibold text-red-700" : ""}>
                   {formatFechaHora(orden.segunda_notificacion_en)}
                 </span>
               </InfoRow>
@@ -267,11 +266,13 @@ export default async function OrdenDetallePage({
           <CambiarEstadoForm ordenId={orden.id} estadoActual={orden.estado} />
         </section>
 
-        {vencido ? (
+        {bodegaje ? (
           <p className="rounded-lg border border-red-300 bg-red-50 p-3 text-center text-sm font-medium text-red-900">
             {paraDestruccion
               ? `Pasaron 6 meses desde el segundo aviso: la maleta puede enviarse a destrucción (desde el ${formatFecha(fechaDestruccion(orden.segunda_notificacion_en!))}). `
-              : `Pasaron los ${DIAS_PLAZO_RECOGIDA} días hábiles del segundo aviso: corresponde cobrar bodegaje de ${formatMoney(BODEGAJE)}. Envío a destrucción desde el ${formatFecha(fechaDestruccion(orden.segunda_notificacion_en!))}.`}
+              : bodegaje.desde === "primer"
+                ? `Pasaron los ${DIAS_PLAZO_RECOGIDA} días hábiles desde que se le avisó que su maleta estaba lista: corresponde cobrar bodegaje de ${formatMoney(bodegaje.monto)}.`
+                : `Pasaron los ${DIAS_PLAZO_RECOGIDA} días hábiles del segundo aviso: corresponde cobrar bodegaje de ${formatMoney(bodegaje.monto)}. Envío a destrucción desde el ${formatFecha(fechaDestruccion(orden.segunda_notificacion_en!))}.`}
           </p>
         ) : null}
 

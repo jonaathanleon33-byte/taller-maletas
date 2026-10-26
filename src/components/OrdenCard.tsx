@@ -4,8 +4,8 @@ import {
   ESTADO_LABELS,
   TAMANO_LABELS,
   TIPO_LABELS,
-  BODEGAJE,
   DIAS_PLAZO_RECOGIDA,
+  bodegajePendiente,
   debeRenotificar,
   destruccionVencida,
   diasDesdeNotificacion,
@@ -13,7 +13,6 @@ import {
   diasSinEntregar,
   esEntregada,
   getEstadoClasses,
-  plazoVencido,
 } from "@/lib/estado";
 import { EstadoBadge } from "@/components/EstadoBadge";
 import { formatMoney } from "@/lib/money";
@@ -41,10 +40,11 @@ export function AvisoNotificacion({
         </p>
       );
     }
-    if (plazoVencido(orden)) {
+    const bodegaje = bodegajePendiente(orden);
+    if (bodegaje) {
       return (
         <p className="mt-1 text-xs font-semibold text-red-700">
-          Plazo vencido · cobrar bodegaje {formatMoney(BODEGAJE)}
+          Plazo vencido · cobrar bodegaje {formatMoney(bodegaje.monto)}
         </p>
       );
     }
@@ -59,6 +59,15 @@ export function AvisoNotificacion({
 
   const dias = diasDesdeNotificacion(orden);
   if (dias === null) return null;
+
+  const bodegajePrimero = bodegajePendiente(orden);
+  if (bodegajePrimero) {
+    return (
+      <p className="mt-1 text-xs font-semibold text-red-700">
+        Plazo vencido · cobrar bodegaje {formatMoney(bodegajePrimero.monto)} · avisada hace {dias} días
+      </p>
+    );
+  }
 
   if (debeRenotificar(orden)) {
     return (

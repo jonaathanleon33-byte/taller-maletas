@@ -184,6 +184,30 @@ export function fechaDestruccion(segundaNotificacion: string) {
   return d.toISOString().slice(0, 10);
 }
 
+// Bodegaje por cobrar: pasaron 6 días hábiles (lunes a sábado) desde el
+// último aviso de "lista" sin que recojan la maleta. Tras el primer aviso
+// el valor es BODEGAJE_PRIMER_AVISO; si ya se mandó el segundo aviso, el
+// plazo cuenta desde éste y el valor es BODEGAJE.
+export function bodegajePendiente(
+  orden: Pick<Orden, "estado" | "notificada_lista_en" | "segunda_notificacion_en">,
+): { monto: number; desde: "primer" | "segundo"; dias: number } | null {
+  if (orden.estado !== "lista") return null;
+  if (orden.segunda_notificacion_en) {
+    const dias = diasHabilesDesde(orden.segunda_notificacion_en);
+    return dias >= DIAS_PLAZO_RECOGIDA ? { monto: BODEGAJE, desde: "segundo", dias } : null;
+  }
+  if (
+    orden.notificada_lista_en &&
+    fechaColombia(new Date(orden.notificada_lista_en)) >= BODEGAJE_PRIMER_AVISO_DESDE
+  ) {
+    const dias = diasHabilesDesde(orden.notificada_lista_en);
+    return dias >= DIAS_PLAZO_RECOGIDA
+      ? { monto: BODEGAJE_PRIMER_AVISO, desde: "primer", dias }
+      : null;
+  }
+  return null;
+}
+
 export function destruccionVencida(orden: ConSegundoAviso, ahora = new Date()) {
   if (orden.estado !== "lista" || !orden.segunda_notificacion_en) return false;
   return fechaColombia(ahora) >= fechaDestruccion(orden.segunda_notificacion_en);
@@ -244,6 +268,13 @@ export function estadoDotClass(estado: Estado) {
 // Aviso que lleva el PRIMER mensaje de "ya está lista": plazo para
 // recoger y bodegaje si pasa de ese plazo.
 export const BODEGAJE_PRIMER_AVISO = 30000;
+// Solo cuenta el bodegaje del primer aviso para notificaciones enviadas
+// desde esta fecha: los avisos anteriores no traían el plazo ni el
+// valor, así que no corresponde cobrárselos a esos clientes.
+export const BODEGAJE_PRIMER_AVISO_DESDE = "2026-10-27";
+export function inicioBodegajePrimerAvisoIso() {
+  return new Date(`${BODEGAJE_PRIMER_AVISO_DESDE}T00:00:00-05:00`).toISOString();
+}
 export const AVISO_PRIMER_AVISO = `Tienes ${DIAS_PLAZO_RECOGIDA} días hábiles (lunes a sábado) a partir de este aviso para recoger tu maleta; pasado ese plazo se cobrará un bodegaje de $${BODEGAJE_PRIMER_AVISO.toLocaleString("es-CO")}.`;
 
 export const AVISO_PLAZO_RECOGIDA =
