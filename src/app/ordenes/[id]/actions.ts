@@ -12,11 +12,14 @@ import {
 } from "@/lib/google-sheets";
 import {
   MENSAJE_TELEFONO_INVALIDO,
+  bodegajePendiente,
   esEntregada,
   fechaColombia,
   telefonoValido,
 } from "@/lib/estado";
 import { capitalizarNombre, capitalizarPrimera } from "@/lib/texto";
+import { DESCRIPCION_BODEGAJE, bodegajeDelRecibo } from "@/lib/bodegaje";
+import { sincronizarPrecioSheets } from "@/lib/precio-sheets";
 import type { Estado } from "@/types/database";
 import type { AccionResultado } from "@/lib/accion";
 
@@ -184,6 +187,75 @@ export async function actualizarFechaPrometida(
   await actualizarFechaPrometidaEnSheets(ids, fecha);
 
   for (const id of ids) revalidatePath(`/ordenes/${id}`);
+  revalidatePath("/");
+  return null;
+}
+
+// Agrega el bodegaje a la factura (un solo ítem por recibo). Si ya
+// estaba con el valor del primer aviso y ahora corresponde el del
+// segundo, lo actualiza en vez de duplicarlo.
+export async function agregarBodegaje(ordenId: string): Promise<AccionResultado> {
+  const supabase = await createClient();
+
+  const { data: orden } = await supabase
+    .from("ordenes")
+    .select("estado, notificada_lista_en, segunda_notificacion_en")
+    .eq("id", ordenId)
+    .single();
+  if (!orden) return { error: "No se encontró la orden." };
+
+  const pendiente = bodegajePendiente(orden);
+  if (!pendiente) return { error: "Esta maleta no tiene bodegaje por cobrar." };
+
+  const recibo = await bodegajeDelRecibo(supabase, ordenId);
+  if (!recibo) return { error: "No se encontró el recibo." };
+
+  let comprobanteId: string;
+
+  if (recibo.item) {
+    if (Number(recibo.item.precio_unitario) >= pendiente.monto) {
+      return { error: "El bodegaje ya está agregado a la factura de este recibo." };
+    }
+    const { error } = await supabase
+      .from("comprobante_items")
+      .update({ precio_unitario: pendiente.monto })
+      .eq("id", recibo.item.id);
+    if (error) return { error: error.message };
+    comprobanteId = recibo.item.comprobante_id;
+  } else {
+    let propio = recibo.propio;
+    if (!propio) {
+      const { data: nuevo, error } = await supabase
+        .from("comprobantes")
+        .insert({ orden_id: ordenId })
+        .select("id, orden_id, pagado")
+        .single();
+      if (error || !nuevo) return { error: error?.message ?? "No se pudo crear la factura." };
+      propio = nuevo;
+    }
+    const { error } = await supabase.from("comprobante_items").insert({
+      comprobante_id: propio.id,
+      servicio_id: null,
+      descripcion: DESCRIPCION_BODEGAJE,
+      precio_unitario: pendiente.monto,
+      cantidad: 1,
+    });
+    if (error) return { error: error.message };
+    comprobanteId = propio.id;
+  }
+
+  // Con el bodegaje el total cambió: si la factura estaba marcada como
+  // pagada, vuelve a pendiente para cobrar la diferencia.
+  await supabase
+    .from("comprobantes")
+    .update({ pagado: false })
+    .eq("id", comprobanteId)
+    .eq("pagado", true);
+
+  await sincronizarPrecioSheets(comprobanteId);
+
+  revalidatePath(`/ordenes/${ordenId}`);
+  revalidatePath(`/ordenes/${ordenId}/comprobante`);
   revalidatePath("/");
   return null;
 }

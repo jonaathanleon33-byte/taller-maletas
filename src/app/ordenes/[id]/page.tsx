@@ -15,6 +15,8 @@ import { NavegacionMaletas } from "@/components/NavegacionMaletas";
 import { NotificarWhatsappButton } from "@/components/NotificarWhatsappButton";
 import { DescripcionArregloRow } from "@/components/DescripcionArregloRow";
 import { createClient } from "@/lib/supabase/server";
+import { bodegajeDelRecibo } from "@/lib/bodegaje";
+import { AgregarBodegajeButton } from "@/components/AgregarBodegajeButton";
 import {
   ESTADO_LABELS,
   TAMANO_LABELS,
@@ -95,6 +97,7 @@ export default async function OrdenDetallePage({
   const renotificar = debeRenotificar(orden);
   const diasNotificada = diasDesdeNotificacion(orden);
   const bodegaje = bodegajePendiente(orden);
+  const bodegajeRecibo = bodegaje ? await bodegajeDelRecibo(supabase, orden.id) : null;
   const paraDestruccion = destruccionVencida(orden);
 
   return (
@@ -274,6 +277,22 @@ export default async function OrdenDetallePage({
                 ? `Pasaron los ${DIAS_PLAZO_RECOGIDA} días hábiles desde que se le avisó que su maleta estaba lista: corresponde cobrar bodegaje de ${formatMoney(bodegaje.monto)}.`
                 : `Pasaron los ${DIAS_PLAZO_RECOGIDA} días hábiles del segundo aviso: corresponde cobrar bodegaje de ${formatMoney(bodegaje.monto)}. Envío a destrucción desde el ${formatFecha(fechaDestruccion(orden.segunda_notificacion_en!))}.`}
           </p>
+        ) : null}
+
+        {bodegaje && bodegajeRecibo ? (
+          bodegajeRecibo.item && Number(bodegajeRecibo.item.precio_unitario) >= bodegaje.monto ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-center text-sm text-slate-700">
+              Bodegaje de {formatMoney(Number(bodegajeRecibo.item.precio_unitario))} ya agregado a la factura
+              {bodegajeRecibo.enEstaMaleta ? "" : " de otra maleta de este recibo"}.
+            </p>
+          ) : (
+            <AgregarBodegajeButton
+              ordenId={orden.id}
+              monto={bodegaje.monto}
+              modo={bodegajeRecibo.item ? "actualizar" : "agregar"}
+              montoActual={bodegajeRecibo.item ? Number(bodegajeRecibo.item.precio_unitario) : undefined}
+            />
+          )
         ) : null}
 
         {renotificar ? (
